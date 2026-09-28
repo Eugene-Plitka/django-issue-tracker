@@ -6,8 +6,9 @@ from .forms import WorkspaceForm
 from .models import Workspace, WorkspaceMembership
 
 
+@login_required
 def workspace_list(request):
-    workspaces = Workspace.objects.all()
+    workspaces = Workspace.objects.filter(memberships__user=request.user)
 
     return render(
         request,
@@ -16,10 +17,12 @@ def workspace_list(request):
     )
 
 
+@login_required
 def workspace_detail(request, slug):
     workspace = get_object_or_404(
         Workspace,
         slug=slug,
+        memberships__user=request.user,
     )
 
     return render(
