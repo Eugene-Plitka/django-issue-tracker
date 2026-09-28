@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 from workspaces.models import Workspace
@@ -25,3 +26,28 @@ class Project(models.Model):
 
     def __str__(self):
         return f"{self.key} - {self.name}"
+
+
+class ProjectMembership(models.Model):
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="memberships",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="project_memberships",
+    )
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["project", "user"],
+                name="unique_project_user",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user} - {self.project}"
