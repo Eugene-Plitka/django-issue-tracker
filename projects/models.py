@@ -13,6 +13,7 @@ class Project(models.Model):
     name = models.CharField(max_length=150)
     key = models.CharField(max_length=20)
     description = models.TextField(blank=True)
+    next_issue_number = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
