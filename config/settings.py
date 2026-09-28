@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "workspaces",
     "accounts",
     "projects",
+    "issues",
 ]
 
 MIDDLEWARE = [
