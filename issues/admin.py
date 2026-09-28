@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Issue, Label
+from .models import Comment, Issue, Label
 
 
 @admin.register(Issue)
@@ -31,3 +31,10 @@ class LabelAdmin(admin.ModelAdmin):
     list_display = ("name", "project")
     search_fields = ("name", "project__name", "project__key")
     list_filter = ("project",)
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ("issue", "author", "created_at", "updated_at")
+    search_fields = ("body", "author__email", "issue__title")
+    list_filter = ("created_at",)
