@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Comment, Issue, Label
+from .models import Activity, Comment, Issue, Label
 
 
 @admin.register(Issue)
@@ -38,3 +38,23 @@ class CommentAdmin(admin.ModelAdmin):
     list_display = ("issue", "author", "created_at", "updated_at")
     search_fields = ("body", "author__email", "issue__title")
     list_filter = ("created_at",)
+
+
+@admin.register(Activity)
+class ActivityAdmin(admin.ModelAdmin):
+    list_display = (
+        "issue",
+        "actor",
+        "action",
+        "field",
+        "created_at",
+    )
+    search_fields = (
+        "issue__title",
+        "actor__email",
+        "action",
+        "field",
+        "old_value",
+        "new_value",
+    )
+    list_filter = ("action", "field", "created_at")

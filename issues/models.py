@@ -106,3 +106,24 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"Comment by {self.author} on {self.issue}"
+
+
+class Activity(models.Model):
+    issue = models.ForeignKey(
+        Issue,
+        on_delete=models.CASCADE,
+        related_name="activities",
+    )
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="issue_activities",
+    )
+    action = models.CharField(max_length=50)
+    field = models.CharField(max_length=50, blank=True)
+    old_value = models.TextField(blank=True)
+    new_value = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.actor} - {self.action} - {self.issue}"
