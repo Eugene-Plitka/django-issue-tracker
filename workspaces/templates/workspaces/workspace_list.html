@@ -9,7 +9,11 @@
 
     <ul>
         {% for workspace in workspaces %}
-            <li>{{ workspace.name }}</li>
+            <li>
+                <a href="{% url 'workspaces:detail' workspace.slug %}">
+                    {{ workspace.name }}
+                </a>
+            </li>
         {% empty %}
             <li>No workspaces yet.</li>
         {% endfor %}
