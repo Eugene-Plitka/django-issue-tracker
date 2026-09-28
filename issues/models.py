@@ -4,6 +4,26 @@ from django.db import models
 from projects.models import Project
 
 
+class Label(models.Model):
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="labels",
+    )
+    name = models.CharField(max_length=50)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["project", "name"],
+                name="unique_label_name_per_project",
+            )
+        ]
+
+    def __str__(self):
+        return self.name
+
+
 class Issue(models.Model):
     class Status(models.TextChoices):
         TODO = "todo", "To Do"
@@ -46,6 +66,11 @@ class Issue(models.Model):
         on_delete=models.SET_NULL,
         related_name="assigned_issues",
         null=True,
+        blank=True,
+    )
+    labels = models.ManyToManyField(
+        Label,
+        related_name="issues",
         blank=True,
     )
 
