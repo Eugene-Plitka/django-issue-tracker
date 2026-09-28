@@ -5,6 +5,12 @@
 {% block content %}
     <h1>Workspaces</h1>
 
+    <p>
+        <a href="{% url 'workspaces:create' %}">
+            Create workspace
+        </a>
+    </p>
+
     <ul>
         {% for workspace in workspaces %}
             <li>
