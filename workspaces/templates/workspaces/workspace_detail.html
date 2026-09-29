@@ -7,4 +7,12 @@
 
     <p>Slug: {{ workspace.slug }}</p>
     <p>Created: {{ workspace.created_at }}</p>
+    <p>Your role: {{ membership.get_role_display }}</p>
+    {% if membership.role == "owner" %}
+        <p>
+            <a href="{% url 'workspaces:update' workspace.slug %}">
+                Edit workspace
+            </a>
+        </p>
+    {% endif %}
 {% endblock %}

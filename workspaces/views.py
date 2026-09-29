@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -25,10 +26,15 @@ def workspace_detail(request, slug):
         memberships__user=request.user,
     )
 
+    membership = workspace.memberships.get(user=request.user)
+
     return render(
         request,
         "workspaces/workspace_detail.html",
-        {"workspace": workspace},
+        {
+            "workspace": workspace,
+            "membership": membership,
+        },
     )
 
 
@@ -58,4 +64,40 @@ def workspace_create(request):
         request,
         "workspaces/workspace_form.html",
         {"form": form},
+    )
+
+
+@login_required
+def workspace_update(request, slug):
+    workspace = get_object_or_404(
+        Workspace,
+        slug=slug,
+        memberships__user=request.user,
+    )
+
+    membership = workspace.memberships.get(user=request.user)
+
+    if membership.role != WorkspaceMembership.Role.OWNER:
+        raise PermissionDenied
+
+    if request.method == "POST":
+        form = WorkspaceForm(request.POST, instance=workspace)
+
+        if form.is_valid():
+            workspace = form.save()
+
+            return redirect(
+                "workspaces:detail",
+                slug=workspace.slug,
+            )
+    else:
+        form = WorkspaceForm(instance=workspace)
+
+    return render(
+        request,
+        "workspaces/workspace_form.html",
+        {
+            "form": form,
+            "workspace": workspace,
+        },
     )
