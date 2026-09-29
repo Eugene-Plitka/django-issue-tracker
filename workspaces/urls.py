@@ -19,5 +19,10 @@ urlpatterns = [
         views.workspace_member_add,
         name="member-add",
     ),
+    path(
+        "<slug:slug>/members/<int:membership_id>/edit/",
+        views.workspace_member_update,
+        name="member-update",
+    ),
     path("<slug:slug>/", views.workspace_detail, name="detail"),
 ]

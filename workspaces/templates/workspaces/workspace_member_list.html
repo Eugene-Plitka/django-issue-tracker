@@ -18,6 +18,12 @@
             <li>
                 {{ membership.user.email }}
                 — {{ membership.get_role_display }}
+
+                {% if current_membership.role == "owner" or current_membership.role == "manager" %}
+                    <a href="{% url 'workspaces:member-update' workspace.slug membership.id %}">
+                        Edit role
+                    </a>
+                {% endif %}
             </li>
         {% empty %}
             <li>No members yet.</li>

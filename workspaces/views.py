@@ -4,7 +4,11 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.models import User
 
-from .forms import WorkspaceForm, WorkspaceMemberForm
+from .forms import (
+    WorkspaceForm,
+    WorkspaceMemberForm,
+    WorkspaceMemberRoleForm,
+)
 from .models import Workspace, WorkspaceMembership
 from .permissions import (
     get_workspace_membership,
@@ -202,6 +206,88 @@ def workspace_member_add(request, slug):
         "workspaces/workspace_member_form.html",
         {
             "workspace": workspace,
+            "form": form,
+        },
+    )
+
+
+@login_required
+def workspace_member_update(request, slug, membership_id):
+    workspace = get_object_or_404(
+        Workspace,
+        slug=slug,
+        memberships__user=request.user,
+    )
+
+    current_membership = require_workspace_management(
+        workspace,
+        request.user,
+    )
+
+    membership = get_object_or_404(
+        WorkspaceMembership,
+        id=membership_id,
+        workspace=workspace,
+    )
+
+    if request.method == "POST":
+        form = WorkspaceMemberRoleForm(request.POST)
+
+        if form.is_valid():
+            new_role = form.cleaned_data["role"]
+
+            if (
+                current_membership.role != WorkspaceMembership.Role.OWNER
+                and new_role == WorkspaceMembership.Role.OWNER
+            ):
+                form.add_error(
+                    "role",
+                    "Only an owner can assign the owner role.",
+                )
+
+            elif (
+                membership.role == WorkspaceMembership.Role.OWNER
+                and new_role != WorkspaceMembership.Role.OWNER
+            ):
+                owner_count = WorkspaceMembership.objects.filter(
+                    workspace=workspace,
+                    role=WorkspaceMembership.Role.OWNER,
+                ).count()
+
+                if owner_count == 1:
+                    form.add_error(
+                        "role",
+                        "The last owner cannot be demoted.",
+                    )
+                else:
+                    membership.role = new_role
+                    membership.save(update_fields=["role"])
+
+                    return redirect(
+                        "workspaces:member-list",
+                        slug=workspace.slug,
+                    )
+
+            else:
+                membership.role = new_role
+                membership.save(update_fields=["role"])
+
+                return redirect(
+                    "workspaces:member-list",
+                    slug=workspace.slug,
+                )
+
+    else:
+        form = WorkspaceMemberRoleForm(
+            initial={"role": membership.role},
+        )
+
+    return render(
+        request,
+        "workspaces/workspace_member_update.html",
+        {
+            "workspace": workspace,
+            "membership": membership,
             "form": form,
         },
     )

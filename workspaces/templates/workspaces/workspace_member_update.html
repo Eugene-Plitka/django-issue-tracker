@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Member Role{% endblock %}
+
+{% block content %}
+    <h1>Edit member role</h1>
+
+    <p>{{ membership.user.email }}</p>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <button type="submit">Save role</button>
+    </form>
+
+    <p>
+        <a href="{% url 'workspaces:member-list' workspace.slug %}">
+            Back to members
+        </a>
+    </p>
+{% endblock %}

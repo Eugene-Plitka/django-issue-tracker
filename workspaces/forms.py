@@ -14,3 +14,9 @@ class WorkspaceMemberForm(forms.Form):
     role = forms.ChoiceField(
         choices=WorkspaceMembership.Role.choices,
     )
+
+
+class WorkspaceMemberRoleForm(forms.Form):
+    role = forms.ChoiceField(
+        choices=WorkspaceMembership.Role.choices,
+    )

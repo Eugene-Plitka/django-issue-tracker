@@ -308,3 +308,121 @@ class WorkspacePermissionTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 403)
+
+    def test_owner_can_change_member_role(self):
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "workspaces:member-update",
+                kwargs={
+                    "slug": self.workspace.slug,
+                    "membership_id": self.viewer.workspace_memberships.get(
+                        workspace=self.workspace
+                    ).id,
+                },
+            ),
+            {
+                "role": WorkspaceMembership.Role.DEVELOPER,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        membership = WorkspaceMembership.objects.get(
+            workspace=self.workspace,
+            user=self.viewer,
+        )
+
+        self.assertEqual(
+            membership.role,
+            WorkspaceMembership.Role.DEVELOPER,
+        )
+
+    def test_manager_cannot_assign_owner_role(self):
+        manager = User.objects.create_user(
+            email="manager@example.com",
+            password="TestPassword123!",
+        )
+
+        manager_membership = WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=manager,
+            role=WorkspaceMembership.Role.MANAGER,
+        )
+
+        self.client.login(
+            email="manager@example.com",
+            password="TestPassword123!",
+        )
+
+        viewer_membership = WorkspaceMembership.objects.get(
+            workspace=self.workspace,
+            user=self.viewer,
+        )
+
+        response = self.client.post(
+            reverse(
+                "workspaces:member-update",
+                kwargs={
+                    "slug": self.workspace.slug,
+                    "membership_id": viewer_membership.id,
+                },
+            ),
+            {
+                "role": WorkspaceMembership.Role.OWNER,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Only an owner can assign the owner role.",
+        )
+
+        viewer_membership.refresh_from_db()
+
+        self.assertEqual(
+            viewer_membership.role,
+            WorkspaceMembership.Role.VIEWER,
+        )
+
+    def test_last_owner_cannot_be_demoted(self):
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        owner_membership = WorkspaceMembership.objects.get(
+            workspace=self.workspace,
+            user=self.owner,
+        )
+
+        response = self.client.post(
+            reverse(
+                "workspaces:member-update",
+                kwargs={
+                    "slug": self.workspace.slug,
+                    "membership_id": owner_membership.id,
+                },
+            ),
+            {
+                "role": WorkspaceMembership.Role.MANAGER,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "The last owner cannot be demoted.",
+        )
+
+        owner_membership.refresh_from_db()
+
+        self.assertEqual(
+            owner_membership.role,
+            WorkspaceMembership.Role.OWNER,
+        )
