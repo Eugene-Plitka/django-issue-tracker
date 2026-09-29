@@ -193,3 +193,118 @@ class WorkspacePermissionTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 404)
+
+    def test_owner_can_add_workspace_member(self):
+        new_user = User.objects.create_user(
+            email="newuser@example.com",
+            password="TestPassword123!",
+        )
+
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "workspaces:member-add",
+                kwargs={"slug": self.workspace.slug},
+            ),
+            {
+                "email": new_user.email,
+                "role": WorkspaceMembership.Role.DEVELOPER,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(
+            WorkspaceMembership.objects.filter(
+                workspace=self.workspace,
+                user=new_user,
+                role=WorkspaceMembership.Role.DEVELOPER,
+            ).exists()
+        )
+
+    def test_cannot_add_existing_workspace_member_again(self):
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "workspaces:member-add",
+                kwargs={"slug": self.workspace.slug},
+            ),
+            {
+                "email": self.viewer.email,
+                "role": WorkspaceMembership.Role.DEVELOPER,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "This user is already a workspace member.",
+        )
+
+    def test_manager_cannot_add_owner(self):
+        manager = User.objects.create_user(
+            email="manager@example.com",
+            password="TestPassword123!",
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=manager,
+            role=WorkspaceMembership.Role.MANAGER,
+        )
+
+        new_user = User.objects.create_user(
+            email="newowner@example.com",
+            password="TestPassword123!",
+        )
+
+        self.client.login(
+            email="manager@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "workspaces:member-add",
+                kwargs={"slug": self.workspace.slug},
+            ),
+            {
+                "email": new_user.email,
+                "role": WorkspaceMembership.Role.OWNER,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Only an owner can add another owner.",
+        )
+
+        self.assertFalse(
+            WorkspaceMembership.objects.filter(
+                workspace=self.workspace,
+                user=new_user,
+            ).exists()
+        )
+
+    def test_viewer_cannot_open_member_add_page(self):
+        self.client.login(
+            email="viewer@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.get(
+            reverse(
+                "workspaces:member-add",
+                kwargs={"slug": self.workspace.slug},
+            )
+        )
+
+        self.assertEqual(response.status_code, 403)

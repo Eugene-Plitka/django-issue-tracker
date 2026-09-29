@@ -2,10 +2,13 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import WorkspaceForm
+from accounts.models import User
+
+from .forms import WorkspaceForm, WorkspaceMemberForm
 from .models import Workspace, WorkspaceMembership
 from .permissions import (
     get_workspace_membership,
+    require_workspace_management,
     require_workspace_owner,
 )
 
@@ -117,6 +120,11 @@ def workspace_member_list(request, slug):
         memberships__user=request.user,
     )
 
+    current_membership = get_workspace_membership(
+        workspace,
+        request.user,
+    )
+
     memberships = workspace.memberships.select_related("user").all()
 
     return render(
@@ -125,5 +133,75 @@ def workspace_member_list(request, slug):
         {
             "workspace": workspace,
             "memberships": memberships,
+            "current_membership": current_membership,
+        },
+    )
+
+
+@login_required
+def workspace_member_add(request, slug):
+    workspace = get_object_or_404(
+        Workspace,
+        slug=slug,
+        memberships__user=request.user,
+    )
+
+    current_membership = require_workspace_management(
+        workspace,
+        request.user,
+    )
+
+    if request.method == "POST":
+        form = WorkspaceMemberForm(request.POST)
+
+        if form.is_valid():
+            email = form.cleaned_data["email"]
+            role = form.cleaned_data["role"]
+
+            if (
+                current_membership.role != WorkspaceMembership.Role.OWNER
+                and role == WorkspaceMembership.Role.OWNER
+            ):
+                form.add_error(
+                    "role",
+                    "Only an owner can add another owner.",
+                )
+            else:
+                try:
+                    user = User.objects.get(email=email)
+                except User.DoesNotExist:
+                    form.add_error(
+                        "email",
+                        "No user with this email exists.",
+                    )
+                else:
+                    if WorkspaceMembership.objects.filter(
+                        workspace=workspace,
+                        user=user,
+                    ).exists():
+                        form.add_error(
+                            "email",
+                            "This user is already a workspace member.",
+                        )
+                    else:
+                        WorkspaceMembership.objects.create(
+                            workspace=workspace,
+                            user=user,
+                            role=role,
+                        )
+
+                        return redirect(
+                            "workspaces:member-list",
+                            slug=workspace.slug,
+                        )
+    else:
+        form = WorkspaceMemberForm()
+
+    return render(
+        request,
+        "workspaces/workspace_member_form.html",
+        {
+            "workspace": workspace,
+            "form": form,
         },
     )
