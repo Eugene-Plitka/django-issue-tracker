@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}{{ workspace.name }} Members{% endblock %}
+
+{% block content %}
+    <h1>{{ workspace.name }} Members</h1>
+
+    <ul>
+        {% for membership in memberships %}
+            <li>
+                {{ membership.user.email }}
+                — {{ membership.get_role_display }}
+            </li>
+        {% empty %}
+            <li>No members yet.</li>
+        {% endfor %}
+    </ul>
+
+    <p>
+        <a href="{% url 'workspaces:detail' workspace.slug %}">
+            Back to workspace
+        </a>
+    </p>
+{% endblock %}

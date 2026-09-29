@@ -107,3 +107,23 @@ def workspace_update(request, slug):
             "workspace": workspace,
         },
     )
+
+
+@login_required
+def workspace_member_list(request, slug):
+    workspace = get_object_or_404(
+        Workspace,
+        slug=slug,
+        memberships__user=request.user,
+    )
+
+    memberships = workspace.memberships.select_related("user").all()
+
+    return render(
+        request,
+        "workspaces/workspace_member_list.html",
+        {
+            "workspace": workspace,
+            "memberships": memberships,
+        },
+    )

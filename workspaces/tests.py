@@ -145,3 +145,51 @@ class WorkspacePermissionTests(TestCase):
         response = self.client.get(reverse("workspaces:list"))
 
         self.assertEqual(response.status_code, 302)
+
+    def test_workspace_member_can_open_member_list(self):
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.get(
+            reverse(
+                "workspaces:member-list",
+                kwargs={"slug": self.workspace.slug},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "owner@example.com")
+        self.assertContains(response, "viewer@example.com")
+
+    def test_foreign_user_cannot_open_member_list(self):
+        other_user = User.objects.create_user(
+            email="other@example.com",
+            password="TestPassword123!",
+        )
+
+        other_workspace = Workspace.objects.create(
+            name="Other Workspace",
+            slug="other-workspace",
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=other_workspace,
+            user=other_user,
+            role=WorkspaceMembership.Role.OWNER,
+        )
+
+        self.client.login(
+            email="other@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.get(
+            reverse(
+                "workspaces:member-list",
+                kwargs={"slug": self.workspace.slug},
+            )
+        )
+
+        self.assertEqual(response.status_code, 404)

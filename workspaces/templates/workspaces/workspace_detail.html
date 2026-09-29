@@ -14,5 +14,10 @@
                 Edit workspace
             </a>
         </p>
+        <p>
+            <a href="{% url 'workspaces:member-list' workspace.slug %}">
+                Members
+            </a>
+        </p>
     {% endif %}
 {% endblock %}
