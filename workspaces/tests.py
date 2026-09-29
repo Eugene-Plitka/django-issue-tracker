@@ -72,3 +72,76 @@ class WorkspacePermissionTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 302)
+
+    def test_user_sees_own_workspace_in_list(self):
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.get(reverse("workspaces:list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Test Workspace")
+
+    def test_user_does_not_see_foreign_workspace_in_list(self):
+        other_user = User.objects.create_user(
+            email="other@example.com",
+            password="TestPassword123!",
+        )
+
+        other_workspace = Workspace.objects.create(
+            name="Other Workspace",
+            slug="other-workspace",
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=other_workspace,
+            user=other_user,
+            role=WorkspaceMembership.Role.OWNER,
+        )
+
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.get(reverse("workspaces:list"))
+
+        self.assertNotContains(response, "Other Workspace")
+
+    def test_user_cannot_open_foreign_workspace_detail(self):
+        other_user = User.objects.create_user(
+            email="other2@example.com",
+            password="TestPassword123!",
+        )
+
+        other_workspace = Workspace.objects.create(
+            name="Private Workspace",
+            slug="private-workspace",
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=other_workspace,
+            user=other_user,
+            role=WorkspaceMembership.Role.OWNER,
+        )
+
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.get(
+            reverse(
+                "workspaces:detail",
+                kwargs={"slug": other_workspace.slug},
+            )
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_anonymous_user_is_redirected_from_workspace_list(self):
+        response = self.client.get(reverse("workspaces:list"))
+
+        self.assertEqual(response.status_code, 302)
