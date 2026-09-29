@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -289,5 +290,57 @@ def workspace_member_update(request, slug, membership_id):
             "workspace": workspace,
             "membership": membership,
             "form": form,
+        },
+    )
+
+
+@login_required
+def workspace_member_delete(request, slug, membership_id):
+    workspace = get_object_or_404(
+        Workspace,
+        slug=slug,
+        memberships__user=request.user,
+    )
+
+    current_membership = require_workspace_management(
+        workspace,
+        request.user,
+    )
+
+    membership = get_object_or_404(
+        WorkspaceMembership,
+        id=membership_id,
+        workspace=workspace,
+    )
+
+    if (
+        current_membership.role != WorkspaceMembership.Role.OWNER
+        and membership.role == WorkspaceMembership.Role.OWNER
+    ):
+        raise PermissionDenied
+
+    if membership.role == WorkspaceMembership.Role.OWNER:
+        owner_count = WorkspaceMembership.objects.filter(
+            workspace=workspace,
+            role=WorkspaceMembership.Role.OWNER,
+        ).count()
+
+        if owner_count == 1:
+            raise PermissionDenied
+
+    if request.method == "POST":
+        membership.delete()
+
+        return redirect(
+            "workspaces:member-list",
+            slug=workspace.slug,
+        )
+
+    return render(
+        request,
+        "workspaces/workspace_member_confirm_delete.html",
+        {
+            "workspace": workspace,
+            "membership": membership,
         },
     )

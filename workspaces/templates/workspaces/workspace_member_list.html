@@ -23,6 +23,10 @@
                     <a href="{% url 'workspaces:member-update' workspace.slug membership.id %}">
                         Edit role
                     </a>
+
+                    <a href="{% url 'workspaces:member-delete' workspace.slug membership.id %}">
+                        Remove
+                    </a>
                 {% endif %}
             </li>
         {% empty %}

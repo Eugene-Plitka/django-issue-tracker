@@ -426,3 +426,107 @@ class WorkspacePermissionTests(TestCase):
             owner_membership.role,
             WorkspaceMembership.Role.OWNER,
         )
+
+    def test_owner_can_remove_developer(self):
+        developer = User.objects.create_user(
+            email="developer@example.com",
+            password="TestPassword123!",
+        )
+
+        membership = WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=developer,
+            role=WorkspaceMembership.Role.DEVELOPER,
+        )
+
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "workspaces:member-delete",
+                kwargs={
+                    "slug": self.workspace.slug,
+                    "membership_id": membership.id,
+                },
+            )
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        self.assertFalse(
+            WorkspaceMembership.objects.filter(
+                id=membership.id,
+            ).exists()
+        )
+
+    def test_manager_cannot_remove_owner(self):
+        manager = User.objects.create_user(
+            email="manager@example.com",
+            password="TestPassword123!",
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=manager,
+            role=WorkspaceMembership.Role.MANAGER,
+        )
+
+        owner_membership = WorkspaceMembership.objects.get(
+            workspace=self.workspace,
+            user=self.owner,
+        )
+
+        self.client.login(
+            email="manager@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "workspaces:member-delete",
+                kwargs={
+                    "slug": self.workspace.slug,
+                    "membership_id": owner_membership.id,
+                },
+            )
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+        self.assertTrue(
+            WorkspaceMembership.objects.filter(
+                id=owner_membership.id,
+            ).exists()
+        )
+
+    def test_last_owner_cannot_remove_self(self):
+        owner_membership = WorkspaceMembership.objects.get(
+            workspace=self.workspace,
+            user=self.owner,
+        )
+
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "workspaces:member-delete",
+                kwargs={
+                    "slug": self.workspace.slug,
+                    "membership_id": owner_membership.id,
+                },
+            )
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+        self.assertTrue(
+            WorkspaceMembership.objects.filter(
+                id=owner_membership.id,
+            ).exists()
+        )
