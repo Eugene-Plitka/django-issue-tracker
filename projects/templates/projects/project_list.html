@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}{{ workspace.name }} Projects{% endblock %}
+
+{% block content %}
+    <h1>{{ workspace.name }} Projects</h1>
+
+    <ul>
+        {% for project in projects %}
+            <li>
+                {{ project.key }} — {{ project.name }}
+            </li>
+        {% empty %}
+            <li>No projects available.</li>
+        {% endfor %}
+    </ul>
+
+    <p>
+        <a href="{% url 'workspaces:detail' workspace.slug %}">
+            Back to workspace
+        </a>
+    </p>
+{% endblock %}

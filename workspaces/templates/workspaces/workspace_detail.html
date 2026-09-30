@@ -19,5 +19,10 @@
                 Members
             </a>
         </p>
+        <p>
+            <a href="{% url 'projects:list' workspace.slug %}">
+                Projects
+            </a>
+        </p>
     {% endif %}
 {% endblock %}
