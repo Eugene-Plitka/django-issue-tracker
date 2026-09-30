@@ -77,3 +77,43 @@ def project_create(request, workspace_slug):
             "form": form,
         },
     )
+
+
+@login_required
+def project_detail(request, workspace_slug, project_key):
+    workspace = get_object_or_404(
+        Workspace,
+        slug=workspace_slug,
+        memberships__user=request.user,
+    )
+
+    workspace_membership = workspace.memberships.get(
+        user=request.user,
+    )
+
+    if workspace_membership.role in {
+        WorkspaceMembership.Role.OWNER,
+        WorkspaceMembership.Role.MANAGER,
+    }:
+        project = get_object_or_404(
+            Project,
+            workspace=workspace,
+            key=project_key,
+        )
+    else:
+        project = get_object_or_404(
+            Project,
+            workspace=workspace,
+            key=project_key,
+            memberships__user=request.user,
+        )
+
+    return render(
+        request,
+        "projects/project_detail.html",
+        {
+            "workspace": workspace,
+            "project": project,
+            "workspace_membership": workspace_membership,
+        },
+    )
