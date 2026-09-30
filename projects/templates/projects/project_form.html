@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Create Project{% endblock %}
+
+{% block content %}
+    <h1>Create project in {{ workspace.name }}</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <button type="submit">Create</button>
+    </form>
+
+    <p>
+        <a href="{% url 'projects:list' workspace.slug %}">
+            Back to projects
+        </a>
+    </p>
+{% endblock %}

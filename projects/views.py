@@ -1,8 +1,10 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 
 from workspaces.models import Workspace, WorkspaceMembership
+from workspaces.permissions import require_workspace_management
 
+from .forms import ProjectForm
 from .models import Project
 
 
@@ -35,5 +37,43 @@ def project_list(request, workspace_slug):
             "workspace": workspace,
             "projects": projects,
             "workspace_membership": workspace_membership,
+        },
+    )
+
+
+@login_required
+def project_create(request, workspace_slug):
+    workspace = get_object_or_404(
+        Workspace,
+        slug=workspace_slug,
+        memberships__user=request.user,
+    )
+
+    require_workspace_management(
+        workspace,
+        request.user,
+    )
+
+    if request.method == "POST":
+        form = ProjectForm(request.POST)
+
+        if form.is_valid():
+            project = form.save(commit=False)
+            project.workspace = workspace
+            project.save()
+
+            return redirect(
+                "projects:list",
+                workspace_slug=workspace.slug,
+            )
+    else:
+        form = ProjectForm()
+
+    return render(
+        request,
+        "projects/project_form.html",
+        {
+            "workspace": workspace,
+            "form": form,
         },
     )

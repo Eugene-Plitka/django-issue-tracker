@@ -92,3 +92,84 @@ class ProjectListTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Backend API")
+
+    def test_owner_can_create_project(self):
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "projects:create",
+                kwargs={"workspace_slug": self.workspace.slug},
+            ),
+            {
+                "name": "Frontend",
+                "key": "WEB",
+                "description": "Frontend application",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        self.assertTrue(
+            Project.objects.filter(
+                workspace=self.workspace,
+                key="WEB",
+                name="Frontend",
+            ).exists()
+        )
+
+    def test_manager_can_create_project(self):
+        manager = User.objects.create_user(
+            email="manager@example.com",
+            password="TestPassword123!",
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=manager,
+            role=WorkspaceMembership.Role.MANAGER,
+        )
+
+        self.client.login(
+            email="manager@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "projects:create",
+                kwargs={"workspace_slug": self.workspace.slug},
+            ),
+            {
+                "name": "Frontend",
+                "key": "WEB",
+                "description": "",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        self.assertTrue(
+            Project.objects.filter(
+                workspace=self.workspace,
+                key="WEB",
+            ).exists()
+        )
+
+    def test_developer_cannot_open_project_create_page(self):
+        self.client.login(
+            email="developer@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.get(
+            reverse(
+                "projects:create",
+                kwargs={"workspace_slug": self.workspace.slug},
+            )
+        )
+
+        self.assertEqual(response.status_code, 403)

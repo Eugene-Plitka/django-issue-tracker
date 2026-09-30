@@ -5,10 +5,16 @@ from . import views
 
 app_name = "projects"
 
+
 urlpatterns = [
     path(
         "",
         views.project_list,
         name="list",
+    ),
+    path(
+        "create/",
+        views.project_create,
+        name="create",
     ),
 ]

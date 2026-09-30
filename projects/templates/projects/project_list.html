@@ -5,6 +5,14 @@
 {% block content %}
     <h1>{{ workspace.name }} Projects</h1>
 
+    {% if workspace_membership.role == "owner" or workspace_membership.role == "manager" %}
+        <p>
+            <a href="{% url 'projects:create' workspace.slug %}">
+                Create project
+            </a>
+        </p>
+    {% endif %}
+
     <ul>
         {% for project in projects %}
             <li>
