@@ -292,3 +292,112 @@ class ProjectListTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 404)
+
+    def test_owner_can_add_project_member(self):
+        ProjectMembership.objects.all().delete()
+
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "projects:member-add",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                },
+            ),
+            {
+                "user": self.developer.id,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        self.assertTrue(
+            ProjectMembership.objects.filter(
+                project=self.project,
+                user=self.developer,
+            ).exists()
+        )
+
+    def test_developer_cannot_open_project_member_add_page(self):
+        ProjectMembership.objects.create(
+            project=self.project,
+            user=self.developer,
+        )
+
+        self.client.login(
+            email="developer@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.get(
+            reverse(
+                "projects:member-add",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                },
+            )
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_project_member_form_excludes_users_outside_workspace(self):
+        outside_user = User.objects.create_user(
+            email="outside@example.com",
+            password="TestPassword123!",
+        )
+
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.get(
+            reverse(
+                "projects:member-add",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                },
+            )
+        )
+
+        form = response.context["form"]
+
+        self.assertNotIn(
+            outside_user,
+            form.fields["user"].queryset,
+        )
+
+    def test_project_member_form_excludes_existing_project_members(self):
+        ProjectMembership.objects.create(
+            project=self.project,
+            user=self.developer,
+        )
+
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.get(
+            reverse(
+                "projects:member-add",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                },
+            )
+        )
+
+        form = response.context["form"]
+
+        self.assertNotIn(
+            self.developer,
+            form.fields["user"].queryset,
+        )

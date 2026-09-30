@@ -13,6 +13,11 @@ urlpatterns = [
         name="create",
     ),
     path(
+        "<str:project_key>/members/add/",
+        views.project_member_add,
+        name="member-add",
+    ),
+    path(
         "<str:project_key>/members/",
         views.project_member_list,
         name="member-list",

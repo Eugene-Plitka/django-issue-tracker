@@ -4,8 +4,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from workspaces.models import Workspace, WorkspaceMembership
 from workspaces.permissions import require_workspace_management
 
-from .forms import ProjectForm
-from .models import Project
+from .forms import ProjectForm, ProjectMemberForm
+from .models import Project, ProjectMembership
 
 
 @login_required
@@ -158,5 +158,61 @@ def project_member_list(request, workspace_slug, project_key):
             "project": project,
             "memberships": memberships,
             "workspace_membership": workspace_membership,
+        },
+    )
+
+
+@login_required
+def project_member_add(request, workspace_slug, project_key):
+    workspace = get_object_or_404(
+        Workspace,
+        slug=workspace_slug,
+        memberships__user=request.user,
+    )
+
+    require_workspace_management(
+        workspace,
+        request.user,
+    )
+
+    project = get_object_or_404(
+        Project,
+        workspace=workspace,
+        key=project_key,
+    )
+
+    if request.method == "POST":
+        form = ProjectMemberForm(
+            request.POST,
+            workspace=workspace,
+            project=project,
+        )
+
+        if form.is_valid():
+            user = form.cleaned_data["user"]
+
+            ProjectMembership.objects.create(
+                project=project,
+                user=user,
+            )
+
+            return redirect(
+                "projects:member-list",
+                workspace_slug=workspace.slug,
+                project_key=project.key,
+            )
+    else:
+        form = ProjectMemberForm(
+            workspace=workspace,
+            project=project,
+        )
+
+    return render(
+        request,
+        "projects/project_member_form.html",
+        {
+            "workspace": workspace,
+            "project": project,
+            "form": form,
         },
     )

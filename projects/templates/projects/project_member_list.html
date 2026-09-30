@@ -15,6 +15,13 @@
         {% endfor %}
     </ul>
 
+    {% if workspace_membership.role == "owner" or workspace_membership.role == "manager" %}
+        <p>
+            <a href="{% url 'projects:member-add' workspace.slug project.key %}">
+                Add project member
+            </a>
+        </p>
+    {% endif %}
     <p>
         <a href="{% url 'projects:detail' workspace.slug project.key %}">
             Back to project
