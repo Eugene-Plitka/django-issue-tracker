@@ -401,3 +401,108 @@ class ProjectListTests(TestCase):
             self.developer,
             form.fields["user"].queryset,
         )
+
+    def test_owner_can_remove_project_member(self):
+        membership = ProjectMembership.objects.create(
+            project=self.project,
+            user=self.developer,
+        )
+
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "projects:member-delete",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                    "membership_id": membership.id,
+                },
+            )
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        self.assertFalse(
+            ProjectMembership.objects.filter(
+                id=membership.id,
+            ).exists()
+        )
+
+    def test_developer_cannot_remove_project_member(self):
+        developer_membership = ProjectMembership.objects.create(
+            project=self.project,
+            user=self.developer,
+        )
+
+        other_user = User.objects.create_user(
+            email="other@example.com",
+            password="TestPassword123!",
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=other_user,
+            role=WorkspaceMembership.Role.DEVELOPER,
+        )
+
+        other_membership = ProjectMembership.objects.create(
+            project=self.project,
+            user=other_user,
+        )
+
+        self.client.login(
+            email="developer@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "projects:member-delete",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                    "membership_id": other_membership.id,
+                },
+            )
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+        self.assertTrue(
+            ProjectMembership.objects.filter(
+                id=other_membership.id,
+            ).exists()
+        )
+
+    def test_removing_project_member_keeps_workspace_membership(self):
+        membership = ProjectMembership.objects.create(
+            project=self.project,
+            user=self.developer,
+        )
+
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        self.client.post(
+            reverse(
+                "projects:member-delete",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                    "membership_id": membership.id,
+                },
+            )
+        )
+
+        self.assertTrue(
+            WorkspaceMembership.objects.filter(
+                workspace=self.workspace,
+                user=self.developer,
+            ).exists()
+        )

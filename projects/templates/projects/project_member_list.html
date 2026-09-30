@@ -9,6 +9,12 @@
         {% for membership in memberships %}
             <li>
                 {{ membership.user.email }}
+
+                {% if workspace_membership.role == "owner" or workspace_membership.role == "manager" %}
+                    <a href="{% url 'projects:member-delete' workspace.slug project.key membership.id %}">
+                        Remove
+                    </a>
+                {% endif %}
             </li>
         {% empty %}
             <li>No project members yet.</li>

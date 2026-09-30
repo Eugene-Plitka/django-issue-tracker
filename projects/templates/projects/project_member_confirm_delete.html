@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Remove Project Member{% endblock %}
+
+{% block content %}
+    <h1>Remove project member</h1>
+
+    <p>
+        Remove {{ membership.user.email }}
+        from project {{ project.key }}?
+    </p>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Remove</button>
+    </form>
+
+    <p>
+        <a href="{% url 'projects:member-list' workspace.slug project.key %}">
+            Cancel
+        </a>
+    </p>
+{% endblock %}
