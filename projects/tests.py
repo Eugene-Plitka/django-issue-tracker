@@ -233,3 +233,62 @@ class ProjectListTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 404)
+
+    def test_owner_can_open_project_member_list(self):
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.get(
+            reverse(
+                "projects:member-list",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                },
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_developer_with_membership_can_open_project_member_list(self):
+        ProjectMembership.objects.create(
+            project=self.project,
+            user=self.developer,
+        )
+
+        self.client.login(
+            email="developer@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.get(
+            reverse(
+                "projects:member-list",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                },
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_developer_without_membership_cannot_open_project_member_list(self):
+        self.client.login(
+            email="developer@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.get(
+            reverse(
+                "projects:member-list",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                },
+            )
+        )
+
+        self.assertEqual(response.status_code, 404)

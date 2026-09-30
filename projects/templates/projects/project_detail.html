@@ -10,7 +10,11 @@
     <p>
         Workspace: {{ workspace.name }}
     </p>
-
+    <p>
+        <a href="{% url 'projects:member-list' workspace.slug project.key %}">
+            Project members
+        </a>
+    </p>
     <p>
         <a href="{% url 'projects:list' workspace.slug %}">
             Back to projects

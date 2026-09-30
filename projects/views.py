@@ -117,3 +117,46 @@ def project_detail(request, workspace_slug, project_key):
             "workspace_membership": workspace_membership,
         },
     )
+
+
+@login_required
+def project_member_list(request, workspace_slug, project_key):
+    workspace = get_object_or_404(
+        Workspace,
+        slug=workspace_slug,
+        memberships__user=request.user,
+    )
+
+    workspace_membership = workspace.memberships.get(
+        user=request.user,
+    )
+
+    if workspace_membership.role in {
+        WorkspaceMembership.Role.OWNER,
+        WorkspaceMembership.Role.MANAGER,
+    }:
+        project = get_object_or_404(
+            Project,
+            workspace=workspace,
+            key=project_key,
+        )
+    else:
+        project = get_object_or_404(
+            Project,
+            workspace=workspace,
+            key=project_key,
+            memberships__user=request.user,
+        )
+
+    memberships = project.memberships.select_related("user").all()
+
+    return render(
+        request,
+        "projects/project_member_list.html",
+        {
+            "workspace": workspace,
+            "project": project,
+            "memberships": memberships,
+            "workspace_membership": workspace_membership,
+        },
+    )

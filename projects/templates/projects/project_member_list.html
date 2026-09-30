@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project.key }} Members{% endblock %}
+
+{% block content %}
+    <h1>{{ project.key }} - Project Members</h1>
+
+    <ul>
+        {% for membership in memberships %}
+            <li>
+                {{ membership.user.email }}
+            </li>
+        {% empty %}
+            <li>No project members yet.</li>
+        {% endfor %}
+    </ul>
+
+    <p>
+        <a href="{% url 'projects:detail' workspace.slug project.key %}">
+            Back to project
+        </a>
+    </p>
+{% endblock %}
