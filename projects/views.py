@@ -261,3 +261,50 @@ def project_member_delete(request, workspace_slug, project_key, membership_id):
             "membership": membership,
         },
     )
+
+
+@login_required
+def project_update(request, workspace_slug, project_key):
+    workspace = get_object_or_404(
+        Workspace,
+        slug=workspace_slug,
+        memberships__user=request.user,
+    )
+
+    require_workspace_management(
+        workspace,
+        request.user,
+    )
+
+    project = get_object_or_404(
+        Project,
+        workspace=workspace,
+        key=project_key,
+    )
+
+    if request.method == "POST":
+        form = ProjectForm(
+            request.POST,
+            instance=project,
+        )
+
+        if form.is_valid():
+            project = form.save()
+
+            return redirect(
+                "projects:detail",
+                workspace_slug=workspace.slug,
+                project_key=project.key,
+            )
+    else:
+        form = ProjectForm(instance=project)
+
+    return render(
+        request,
+        "projects/project_form.html",
+        {
+            "workspace": workspace,
+            "project": project,
+            "form": form,
+        },
+    )

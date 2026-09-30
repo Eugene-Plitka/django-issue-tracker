@@ -10,6 +10,13 @@
     <p>
         Workspace: {{ workspace.name }}
     </p>
+    {% if workspace_membership.role == "owner" or workspace_membership.role == "manager" %}
+        <p>
+            <a href="{% url 'projects:update' workspace.slug project.key %}">
+                Edit project
+            </a>
+        </p>
+    {% endif %}
     <p>
         <a href="{% url 'projects:member-list' workspace.slug project.key %}">
             Project members

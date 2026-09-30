@@ -28,6 +28,11 @@ urlpatterns = [
         name="member-delete",
     ),
     path(
+        "<str:project_key>/edit/",
+        views.project_update,
+        name="update",
+    ),
+    path(
         "<str:project_key>/",
         views.project_detail,
         name="detail",

@@ -506,3 +506,95 @@ class ProjectListTests(TestCase):
                 user=self.developer,
             ).exists()
         )
+
+    def test_owner_can_update_project(self):
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "projects:update",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                },
+            ),
+            {
+                "name": "Backend Service",
+                "key": "API",
+                "description": "Updated description",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        self.project.refresh_from_db()
+
+        self.assertEqual(self.project.name, "Backend Service")
+        self.assertEqual(self.project.key, "API")
+
+    def test_manager_can_update_project(self):
+        manager = User.objects.create_user(
+            email="manager@example.com",
+            password="TestPassword123!",
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=manager,
+            role=WorkspaceMembership.Role.MANAGER,
+        )
+
+        self.client.login(
+            email="manager@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "projects:update",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                },
+            ),
+            {
+                "name": "Updated Backend",
+                "key": self.project.key,
+                "description": "",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        self.project.refresh_from_db()
+
+        self.assertEqual(
+            self.project.name,
+            "Updated Backend",
+        )
+
+    def test_developer_cannot_update_project(self):
+        ProjectMembership.objects.create(
+            project=self.project,
+            user=self.developer,
+        )
+
+        self.client.login(
+            email="developer@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.get(
+            reverse(
+                "projects:update",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                },
+            )
+        )
+
+        self.assertEqual(response.status_code, 403)
