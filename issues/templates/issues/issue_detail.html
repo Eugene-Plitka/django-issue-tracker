@@ -53,11 +53,15 @@
     <ul>
         {% for activity in issue.activities.all %}
             <li>
-                {{ activity.actor.email }}
-                — {{ activity.action }}
-                — {{ activity.field }}
-                — {{ activity.old_value }}
-                → {{ activity.new_value }}
+                {% if activity.action == "commented" %}
+                    {{ activity.actor.email }} commented
+                {% else %}
+                    {{ activity.actor.email }}
+                    — {{ activity.action }}
+                    — {{ activity.field }}
+                    — {{ activity.old_value }}
+                    → {{ activity.new_value }}
+                {% endif %}
             </li>
         {% empty %}
             <li>No activity yet.</li>

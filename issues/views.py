@@ -12,7 +12,11 @@ from .forms import (
     IssueManagementForm,
 )
 from .models import Activity, Issue
-from .services import create_issue, update_issue_with_activity
+from .services import (
+    create_comment_activity,
+    create_issue,
+    update_issue_with_activity,
+)
 
 
 @login_required
@@ -185,6 +189,11 @@ def issue_detail(request, workspace_slug, project_key, issue_number):
             comment.issue = issue
             comment.author = request.user
             comment.save()
+
+            create_comment_activity(
+                issue=issue,
+                actor=request.user,
+            )
 
             return redirect(
                 "issues:detail",

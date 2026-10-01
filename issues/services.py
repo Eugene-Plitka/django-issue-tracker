@@ -75,3 +75,11 @@ def update_issue_with_activity(*, issue, actor, form):
         )
 
     return updated_issue
+
+
+def create_comment_activity(*, issue, actor):
+    return Activity.objects.create(
+        issue=issue,
+        actor=actor,
+        action="commented",
+    )

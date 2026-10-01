@@ -819,3 +819,30 @@ class IssueCommentTests(TestCase):
         )
 
         self.assertContains(response, "Visible comment")
+
+    def test_comment_creates_activity(self):
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        self.client.post(
+            reverse(
+                "issues:detail",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                    "issue_number": self.issue.number,
+                },
+            ),
+            {
+                "body": "New comment",
+            },
+        )
+
+        activity = Activity.objects.get(
+            issue=self.issue,
+            action="commented",
+        )
+
+        self.assertEqual(activity.actor, self.owner)
