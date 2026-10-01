@@ -53,7 +53,9 @@
     <ul>
         {% for activity in issue.activities.all %}
             <li>
-                {% if activity.action == "commented" %}
+                {% if activity.action == "created" %}
+                    {{ activity.actor.email }} created issue
+                {% elif activity.action == "commented" %}
                     {{ activity.actor.email }} commented
                 {% else %}
                     {{ activity.actor.email }}

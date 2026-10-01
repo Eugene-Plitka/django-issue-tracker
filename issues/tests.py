@@ -689,6 +689,48 @@ class IssueActivityTests(TestCase):
             2,
         )
 
+    def test_issue_creation_creates_activity(self):
+        project = Project.objects.create(
+            workspace=self.workspace,
+            name="Activity Project",
+            key="ACT",
+        )
+
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "issues:create",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": project.key,
+                },
+            ),
+            {
+                "title": "Created issue",
+                "description": "",
+                "priority": Issue.Priority.MEDIUM,
+                "assignee": "",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        issue = Issue.objects.get(
+            project=project,
+            title="Created issue",
+        )
+
+        activity = Activity.objects.get(
+            issue=issue,
+            action="created",
+        )
+
+        self.assertEqual(activity.actor, self.owner)
+
 
 class IssueCommentTests(TestCase):
     def setUp(self):

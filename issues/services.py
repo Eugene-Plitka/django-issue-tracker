@@ -31,6 +31,12 @@ def create_issue(
         assignee=assignee,
     )
 
+    Activity.objects.create(
+        issue=issue,
+        actor=reporter,
+        action="created",
+    )
+
     locked_project.next_issue_number += 1
     locked_project.save(
         update_fields=["next_issue_number"],
