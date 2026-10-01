@@ -64,6 +64,16 @@
         {% endfor %}
     </ul>
     {% if workspace_membership.role != "viewer" %}
+        <h3>Add comment</h3>
+
+        <form method="post">
+            {% csrf_token %}
+            {{ comment_form.as_p }}
+
+            <button type="submit">Add comment</button>
+        </form>
+    {% endif %}
+    {% if workspace_membership.role != "viewer" %}
         <p>
             <a href="{% url 'issues:update' workspace.slug project.key issue.number %}">
                 Edit issue

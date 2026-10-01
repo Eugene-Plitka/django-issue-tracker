@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import User
-from issues.models import Activity, Issue
+from issues.models import Activity, Comment, Issue
 from projects.models import Project, ProjectMembership
 from workspaces.models import Workspace, WorkspaceMembership
 
@@ -688,3 +688,134 @@ class IssueActivityTests(TestCase):
             ).count(),
             2,
         )
+
+
+class IssueCommentTests(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+        self.viewer = User.objects.create_user(
+            email="viewer@example.com",
+            password="TestPassword123!",
+        )
+
+        self.workspace = Workspace.objects.create(
+            name="Test Workspace",
+            slug="test-workspace",
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=self.owner,
+            role=WorkspaceMembership.Role.OWNER,
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=self.viewer,
+            role=WorkspaceMembership.Role.VIEWER,
+        )
+
+        self.project = Project.objects.create(
+            workspace=self.workspace,
+            name="Backend",
+            key="BACK",
+        )
+
+        ProjectMembership.objects.create(
+            project=self.project,
+            user=self.viewer,
+        )
+
+        self.issue = Issue.objects.create(
+            project=self.project,
+            number=1,
+            title="Test issue",
+            reporter=self.owner,
+        )
+
+    def test_owner_can_add_comment(self):
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "issues:detail",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                    "issue_number": self.issue.number,
+                },
+            ),
+            {
+                "body": "Test comment",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        self.assertTrue(
+            Comment.objects.filter(
+                issue=self.issue,
+                author=self.owner,
+                body="Test comment",
+            ).exists()
+        )
+
+    def test_viewer_cannot_add_comment(self):
+        self.client.login(
+            email="viewer@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "issues:detail",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                    "issue_number": self.issue.number,
+                },
+            ),
+            {
+                "body": "Viewer comment",
+            },
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+        self.assertFalse(
+            Comment.objects.filter(
+                issue=self.issue,
+                author=self.viewer,
+            ).exists()
+        )
+
+    def test_comment_is_displayed_on_issue_detail(self):
+        Comment.objects.create(
+            issue=self.issue,
+            author=self.owner,
+            body="Visible comment",
+        )
+
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.get(
+            reverse(
+                "issues:detail",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                    "issue_number": self.issue.number,
+                },
+            )
+        )
+
+        self.assertContains(response, "Visible comment")

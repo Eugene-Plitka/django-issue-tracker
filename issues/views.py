@@ -6,6 +6,7 @@ from projects.models import Project
 from workspaces.models import Workspace, WorkspaceMembership
 
 from .forms import (
+    CommentForm,
     IssueDeveloperForm,
     IssueForm,
     IssueManagementForm,
@@ -173,6 +174,27 @@ def issue_detail(request, workspace_slug, project_key, issue_number):
         number=issue_number,
     )
 
+    if request.method == "POST":
+        if workspace_membership.role == WorkspaceMembership.Role.VIEWER:
+            raise PermissionDenied
+
+        comment_form = CommentForm(request.POST)
+
+        if comment_form.is_valid():
+            comment = comment_form.save(commit=False)
+            comment.issue = issue
+            comment.author = request.user
+            comment.save()
+
+            return redirect(
+                "issues:detail",
+                workspace_slug=workspace.slug,
+                project_key=project.key,
+                issue_number=issue.number,
+            )
+    else:
+        comment_form = CommentForm()
+
     return render(
         request,
         "issues/issue_detail.html",
@@ -181,6 +203,7 @@ def issue_detail(request, workspace_slug, project_key, issue_number):
             "project": project,
             "issue": issue,
             "workspace_membership": workspace_membership,
+            "comment_form": comment_form,
         },
     )
 

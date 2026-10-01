@@ -2,7 +2,7 @@ from django import forms
 
 from accounts.models import User
 
-from .models import Issue
+from .models import Comment, Issue
 
 
 class IssueForm(forms.ModelForm):
@@ -87,3 +87,9 @@ class IssueDeveloperForm(forms.ModelForm):
         if user is not None and self.instance.reporter_id != user.id:
             self.fields.pop("title")
             self.fields.pop("description")
+
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ("body",)
