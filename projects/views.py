@@ -5,7 +5,8 @@ from workspaces.models import Workspace, WorkspaceMembership
 from workspaces.permissions import require_workspace_management
 
 from .forms import ProjectForm, ProjectMemberForm
-from .models import Project, ProjectMembership
+from .models import ProjectMembership
+from .permissions import get_project_for_user
 
 
 @login_required
@@ -91,22 +92,11 @@ def project_detail(request, workspace_slug, project_key):
         user=request.user,
     )
 
-    if workspace_membership.role in {
-        WorkspaceMembership.Role.OWNER,
-        WorkspaceMembership.Role.MANAGER,
-    }:
-        project = get_object_or_404(
-            Project,
-            workspace=workspace,
-            key=project_key,
-        )
-    else:
-        project = get_object_or_404(
-            Project,
-            workspace=workspace,
-            key=project_key,
-            memberships__user=request.user,
-        )
+    project = get_project_for_user(
+        workspace=workspace,
+        project_key=project_key,
+        user=request.user,
+    )
 
     return render(
         request,
@@ -131,22 +121,11 @@ def project_member_list(request, workspace_slug, project_key):
         user=request.user,
     )
 
-    if workspace_membership.role in {
-        WorkspaceMembership.Role.OWNER,
-        WorkspaceMembership.Role.MANAGER,
-    }:
-        project = get_object_or_404(
-            Project,
-            workspace=workspace,
-            key=project_key,
-        )
-    else:
-        project = get_object_or_404(
-            Project,
-            workspace=workspace,
-            key=project_key,
-            memberships__user=request.user,
-        )
+    project = get_project_for_user(
+        workspace=workspace,
+        project_key=project_key,
+        user=request.user,
+    )
 
     memberships = project.memberships.select_related("user").all()
 
@@ -175,10 +154,10 @@ def project_member_add(request, workspace_slug, project_key):
         request.user,
     )
 
-    project = get_object_or_404(
-        Project,
+    project = get_project_for_user(
         workspace=workspace,
-        key=project_key,
+        project_key=project_key,
+        user=request.user,
     )
 
     if request.method == "POST":
@@ -219,7 +198,12 @@ def project_member_add(request, workspace_slug, project_key):
 
 
 @login_required
-def project_member_delete(request, workspace_slug, project_key, membership_id):
+def project_member_delete(
+    request,
+    workspace_slug,
+    project_key,
+    membership_id,
+):
     workspace = get_object_or_404(
         Workspace,
         slug=workspace_slug,
@@ -231,10 +215,10 @@ def project_member_delete(request, workspace_slug, project_key, membership_id):
         request.user,
     )
 
-    project = get_object_or_404(
-        Project,
+    project = get_project_for_user(
         workspace=workspace,
-        key=project_key,
+        project_key=project_key,
+        user=request.user,
     )
 
     membership = get_object_or_404(
@@ -276,10 +260,10 @@ def project_update(request, workspace_slug, project_key):
         request.user,
     )
 
-    project = get_object_or_404(
-        Project,
+    project = get_project_for_user(
         workspace=workspace,
-        key=project_key,
+        project_key=project_key,
+        user=request.user,
     )
 
     if request.method == "POST":

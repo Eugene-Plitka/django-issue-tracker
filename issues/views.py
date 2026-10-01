@@ -2,11 +2,12 @@ import re
 
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.db.models import Case, IntegerField, Value, When, Q
+from django.db.models import Case, IntegerField, Q, Value, When
 from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.models import User
 from projects.models import Project
+from projects.permissions import get_project_for_user
 from workspaces.models import Workspace, WorkspaceMembership
 from workspaces.permissions import require_workspace_management
 
@@ -37,22 +38,11 @@ def issue_list(request, workspace_slug, project_key):
         user=request.user,
     )
 
-    if workspace_membership.role in {
-        WorkspaceMembership.Role.OWNER,
-        WorkspaceMembership.Role.MANAGER,
-    }:
-        project = get_object_or_404(
-            Project,
-            workspace=workspace,
-            key=project_key,
-        )
-    else:
-        project = get_object_or_404(
-            Project,
-            workspace=workspace,
-            key=project_key,
-            memberships__user=request.user,
-        )
+    project = get_project_for_user(
+        workspace=workspace,
+        project_key=project_key,
+        user=request.user,
+    )
 
     issues = (
         Issue.objects.filter(project=project)
@@ -163,22 +153,11 @@ def issue_create(request, workspace_slug, project_key):
         user=request.user,
     )
 
-    if workspace_membership.role in {
-        WorkspaceMembership.Role.OWNER,
-        WorkspaceMembership.Role.MANAGER,
-    }:
-        project = get_object_or_404(
-            Project,
-            workspace=workspace,
-            key=project_key,
-        )
-    else:
-        project = get_object_or_404(
-            Project,
-            workspace=workspace,
-            key=project_key,
-            memberships__user=request.user,
-        )
+    project = get_project_for_user(
+        workspace=workspace,
+        project_key=project_key,
+        user=request.user,
+    )
 
     if workspace_membership.role == WorkspaceMembership.Role.VIEWER:
         from django.core.exceptions import PermissionDenied
@@ -232,22 +211,11 @@ def issue_detail(request, workspace_slug, project_key, issue_number):
         user=request.user,
     )
 
-    if workspace_membership.role in {
-        WorkspaceMembership.Role.OWNER,
-        WorkspaceMembership.Role.MANAGER,
-    }:
-        project = get_object_or_404(
-            Project,
-            workspace=workspace,
-            key=project_key,
-        )
-    else:
-        project = get_object_or_404(
-            Project,
-            workspace=workspace,
-            key=project_key,
-            memberships__user=request.user,
-        )
+    project = get_project_for_user(
+        workspace=workspace,
+        project_key=project_key,
+        user=request.user,
+    )
 
     issue = get_object_or_404(
         Issue.objects.select_related(
@@ -318,22 +286,11 @@ def issue_update(
         user=request.user,
     )
 
-    if workspace_membership.role in {
-        WorkspaceMembership.Role.OWNER,
-        WorkspaceMembership.Role.MANAGER,
-    }:
-        project = get_object_or_404(
-            Project,
-            workspace=workspace,
-            key=project_key,
-        )
-    else:
-        project = get_object_or_404(
-            Project,
-            workspace=workspace,
-            key=project_key,
-            memberships__user=request.user,
-        )
+    project = get_project_for_user(
+        workspace=workspace,
+        project_key=project_key,
+        user=request.user,
+    )
 
     issue = get_object_or_404(
         Issue,
@@ -428,22 +385,11 @@ def label_list(request, workspace_slug, project_key):
         user=request.user,
     )
 
-    if workspace_membership.role in {
-        WorkspaceMembership.Role.OWNER,
-        WorkspaceMembership.Role.MANAGER,
-    }:
-        project = get_object_or_404(
-            Project,
-            workspace=workspace,
-            key=project_key,
-        )
-    else:
-        project = get_object_or_404(
-            Project,
-            workspace=workspace,
-            key=project_key,
-            memberships__user=request.user,
-        )
+    project = get_project_for_user(
+        workspace=workspace,
+        project_key=project_key,
+        user=request.user,
+    )
 
     labels = project.labels.all()
 
