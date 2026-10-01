@@ -1007,3 +1007,167 @@ class LabelTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 404)
+
+
+class IssueFilterTests(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        self.developer = User.objects.create_user(
+            email="developer@example.com",
+            password="TestPassword123!",
+        )
+
+        self.workspace = Workspace.objects.create(
+            name="Test Workspace",
+            slug="test-workspace",
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=self.owner,
+            role=WorkspaceMembership.Role.OWNER,
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=self.developer,
+            role=WorkspaceMembership.Role.DEVELOPER,
+        )
+
+        self.project = Project.objects.create(
+            workspace=self.workspace,
+            name="Backend",
+            key="BACK",
+        )
+
+        ProjectMembership.objects.create(
+            project=self.project,
+            user=self.developer,
+        )
+
+        self.bug_label = Label.objects.create(
+            project=self.project,
+            name="bug",
+        )
+
+        self.feature_label = Label.objects.create(
+            project=self.project,
+            name="feature",
+        )
+
+        self.issue_one = Issue.objects.create(
+            project=self.project,
+            number=1,
+            title="First issue",
+            reporter=self.owner,
+            assignee=self.developer,
+            status=Issue.Status.TODO,
+            priority=Issue.Priority.HIGH,
+        )
+
+        self.issue_two = Issue.objects.create(
+            project=self.project,
+            number=2,
+            title="Second issue",
+            reporter=self.owner,
+            status=Issue.Status.DONE,
+            priority=Issue.Priority.LOW,
+        )
+
+        self.issue_one.labels.add(self.bug_label)
+        self.issue_two.labels.add(self.feature_label)
+
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+    def test_filter_issues_by_status(self):
+        response = self.client.get(
+            reverse(
+                "issues:list",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                },
+            ),
+            {
+                "status": Issue.Status.TODO,
+            },
+        )
+
+        self.assertContains(response, "First issue")
+        self.assertNotContains(response, "Second issue")
+
+    def test_filter_issues_by_priority(self):
+        response = self.client.get(
+            reverse(
+                "issues:list",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                },
+            ),
+            {
+                "priority": Issue.Priority.LOW,
+            },
+        )
+
+        self.assertContains(response, "Second issue")
+        self.assertNotContains(response, "First issue")
+
+    def test_filter_issues_by_assignee(self):
+        response = self.client.get(
+            reverse(
+                "issues:list",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                },
+            ),
+            {
+                "assignee": str(self.developer.id),
+            },
+        )
+
+        self.assertContains(response, "First issue")
+        self.assertNotContains(response, "Second issue")
+
+    def test_filter_issues_by_label(self):
+        response = self.client.get(
+            reverse(
+                "issues:list",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                },
+            ),
+            {
+                "label": str(self.bug_label.id),
+            },
+        )
+
+        self.assertContains(response, "First issue")
+        self.assertNotContains(response, "Second issue")
+
+    def test_filter_issues_by_status_and_priority(self):
+        response = self.client.get(
+            reverse(
+                "issues:list",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                },
+            ),
+            {
+                "status": Issue.Status.TODO,
+                "priority": Issue.Priority.HIGH,
+            },
+        )
+
+        self.assertContains(response, "First issue")
+        self.assertNotContains(response, "Second issue")

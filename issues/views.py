@@ -2,6 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
 
+from accounts.models import User
 from projects.models import Project
 from workspaces.models import Workspace, WorkspaceMembership
 from workspaces.permissions import require_workspace_management
@@ -50,12 +51,39 @@ def issue_list(request, workspace_slug, project_key):
             memberships__user=request.user,
         )
 
-    issues = Issue.objects.filter(
-        project=project,
-    ).select_related(
-        "reporter",
-        "assignee",
+    issues = (
+        Issue.objects.filter(project=project)
+        .select_related(
+            "reporter",
+            "assignee",
+        )
+        .prefetch_related("labels")
     )
+
+    status = request.GET.get("status")
+    priority = request.GET.get("priority")
+    assignee = request.GET.get("assignee")
+    label = request.GET.get("label")
+
+    if status:
+        issues = issues.filter(status=status)
+
+    if priority:
+        issues = issues.filter(priority=priority)
+
+    if assignee:
+        issues = issues.filter(assignee_id=assignee)
+
+    if label:
+        issues = issues.filter(labels__id=label)
+
+    issues = issues.distinct()
+
+    assignees = User.objects.filter(
+        project_memberships__project=project,
+    ).distinct()
+
+    labels = project.labels.all()
 
     return render(
         request,
@@ -65,6 +93,14 @@ def issue_list(request, workspace_slug, project_key):
             "project": project,
             "issues": issues,
             "workspace_membership": workspace_membership,
+            "assignees": assignees,
+            "labels": labels,
+            "selected_status": status,
+            "selected_priority": priority,
+            "selected_assignee": assignee,
+            "selected_label": label,
+            "status_choices": Issue.Status.choices,
+            "priority_choices": Issue.Priority.choices,
         },
     )
 

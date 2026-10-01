@@ -5,6 +5,70 @@
 {% block content %}
     <h1>{{ project.key }} Issues</h1>
 
+    <form method="get">
+        <label for="status">Status:</label>
+        <select name="status" id="status">
+            <option value="">All</option>
+
+            {% for value, label in status_choices %}
+                <option
+                    value="{{ value }}"
+                    {% if selected_status == value %}selected{% endif %}
+                >
+                    {{ label }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <label for="priority">Priority:</label>
+        <select name="priority" id="priority">
+            <option value="">All</option>
+
+            {% for value, label in priority_choices %}
+                <option
+                    value="{{ value }}"
+                    {% if selected_priority == value %}selected{% endif %}
+                >
+                    {{ label }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <label for="assignee">Assignee:</label>
+        <select name="assignee" id="assignee">
+            <option value="">All</option>
+
+            {% for user in assignees %}
+                <option
+                    value="{{ user.id }}"
+                    {% if selected_assignee == user.id|stringformat:"s" %}selected{% endif %}
+                >
+                    {{ user.email }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <label for="label">Label:</label>
+        <select name="label" id="label">
+            <option value="">All</option>
+
+            {% for label in labels %}
+                <option
+                    value="{{ label.id }}"
+                    {% if selected_label == label.id|stringformat:"s" %}selected{% endif %}
+                >
+                    {{ label.name }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Filter</button>
+
+        <a href="{% url 'issues:list' workspace.slug project.key %}">
+            Reset
+        </a>
+    </form>
+
     <ul>
         {% for issue in issues %}
             <li>
@@ -25,6 +89,7 @@
             <li>No issues yet.</li>
         {% endfor %}
     </ul>
+
     {% if workspace_membership.role != "viewer" %}
         <p>
             <a href="{% url 'issues:create' workspace.slug project.key %}">
@@ -32,6 +97,7 @@
             </a>
         </p>
     {% endif %}
+
     <p>
         <a href="{% url 'projects:detail' workspace.slug project.key %}">
             Back to project
