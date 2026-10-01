@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import User
-from issues.models import Issue
+from issues.models import Activity, Issue
 from projects.models import Project, ProjectMembership
 from workspaces.models import Workspace, WorkspaceMembership
 
@@ -547,3 +547,144 @@ class IssueUpdateTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 403)
+
+
+class IssueActivityTests(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        self.workspace = Workspace.objects.create(
+            name="Test Workspace",
+            slug="test-workspace",
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=self.owner,
+            role=WorkspaceMembership.Role.OWNER,
+        )
+
+        self.project = Project.objects.create(
+            workspace=self.workspace,
+            name="Backend",
+            key="BACK",
+        )
+
+        self.issue = Issue.objects.create(
+            project=self.project,
+            number=1,
+            title="Test issue",
+            reporter=self.owner,
+            status=Issue.Status.TODO,
+            priority=Issue.Priority.MEDIUM,
+        )
+
+    def test_status_change_creates_activity(self):
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        self.client.post(
+            reverse(
+                "issues:update",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                    "issue_number": self.issue.number,
+                },
+            ),
+            {
+                "title": self.issue.title,
+                "description": "",
+                "status": Issue.Status.IN_PROGRESS,
+                "priority": Issue.Priority.MEDIUM,
+                "assignee": "",
+                "labels": [],
+            },
+        )
+
+        activity = Activity.objects.get(
+            issue=self.issue,
+            field="status",
+        )
+
+        self.assertEqual(
+            activity.old_value,
+            Issue.Status.TODO,
+        )
+        self.assertEqual(
+            activity.new_value,
+            Issue.Status.IN_PROGRESS,
+        )
+        self.assertEqual(
+            activity.actor,
+            self.owner,
+        )
+
+    def test_unchanged_status_does_not_create_activity(self):
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        self.client.post(
+            reverse(
+                "issues:update",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                    "issue_number": self.issue.number,
+                },
+            ),
+            {
+                "title": self.issue.title,
+                "description": "",
+                "status": Issue.Status.TODO,
+                "priority": Issue.Priority.MEDIUM,
+                "assignee": "",
+                "labels": [],
+            },
+        )
+
+        self.assertFalse(
+            Activity.objects.filter(
+                issue=self.issue,
+                field="status",
+            ).exists()
+        )
+
+    def test_multiple_field_changes_create_multiple_activities(self):
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        self.client.post(
+            reverse(
+                "issues:update",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                    "issue_number": self.issue.number,
+                },
+            ),
+            {
+                "title": self.issue.title,
+                "description": "",
+                "status": Issue.Status.DONE,
+                "priority": Issue.Priority.HIGH,
+                "assignee": "",
+                "labels": [],
+            },
+        )
+
+        self.assertEqual(
+            Activity.objects.filter(
+                issue=self.issue,
+            ).count(),
+            2,
+        )

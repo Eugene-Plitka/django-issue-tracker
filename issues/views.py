@@ -10,8 +10,8 @@ from .forms import (
     IssueForm,
     IssueManagementForm,
 )
-from .models import Issue
-from .services import create_issue
+from .models import Activity, Issue
+from .services import create_issue, update_issue_with_activity
 
 
 @login_required
@@ -251,14 +251,30 @@ def issue_update(
         )
 
         if form.is_valid():
-            issue = form.save()
+            issue = update_issue_with_activity(
+                issue=issue,
+                actor=request.user,
+                form=form,
+            )
 
             if (
                 workspace_membership.role == WorkspaceMembership.Role.DEVELOPER
                 and form.cleaned_data.get("assign_to_me")
+                and issue.assignee != request.user
             ):
+                old_assignee = issue.assignee
+
                 issue.assignee = request.user
                 issue.save(update_fields=["assignee"])
+
+                Activity.objects.create(
+                    issue=issue,
+                    actor=request.user,
+                    action="changed",
+                    field="assignee",
+                    old_value=old_assignee.email if old_assignee else "",
+                    new_value=request.user.email,
+                )
 
             return redirect(
                 "issues:detail",
