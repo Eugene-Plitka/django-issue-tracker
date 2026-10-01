@@ -26,6 +26,11 @@ urlpatterns = [
         name="label-list",
     ),
     path(
+        "<int:issue_number>/delete/",
+        views.issue_delete,
+        name="delete",
+    ),
+    path(
         "<int:issue_number>/",
         views.issue_detail,
         name="detail",

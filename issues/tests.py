@@ -1336,3 +1336,142 @@ class IssueFilterTests(TestCase):
             issues[0],
             self.issue_one,
         )
+
+
+class IssueDeleteTests(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+        self.manager = User.objects.create_user(
+            email="manager@example.com",
+            password="TestPassword123!",
+        )
+        self.developer = User.objects.create_user(
+            email="developer@example.com",
+            password="TestPassword123!",
+        )
+
+        self.workspace = Workspace.objects.create(
+            name="Test Workspace",
+            slug="test-workspace",
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=self.owner,
+            role=WorkspaceMembership.Role.OWNER,
+        )
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=self.manager,
+            role=WorkspaceMembership.Role.MANAGER,
+        )
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=self.developer,
+            role=WorkspaceMembership.Role.DEVELOPER,
+        )
+
+        self.project = Project.objects.create(
+            workspace=self.workspace,
+            name="Backend",
+            key="BACK",
+        )
+
+        ProjectMembership.objects.create(
+            project=self.project,
+            user=self.developer,
+        )
+
+        self.issue = Issue.objects.create(
+            project=self.project,
+            number=1,
+            title="Issue to delete",
+            reporter=self.owner,
+        )
+
+    def test_owner_can_delete_issue(self):
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "issues:delete",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                    "issue_number": self.issue.number,
+                },
+            )
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        self.assertFalse(Issue.objects.filter(pk=self.issue.pk).exists())
+
+    def test_manager_can_delete_issue(self):
+        self.client.login(
+            email="manager@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "issues:delete",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                    "issue_number": self.issue.number,
+                },
+            )
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        self.assertFalse(Issue.objects.filter(pk=self.issue.pk).exists())
+
+    def test_developer_cannot_delete_issue(self):
+        self.client.login(
+            email="developer@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "issues:delete",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                    "issue_number": self.issue.number,
+                },
+            )
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+        self.assertTrue(Issue.objects.filter(pk=self.issue.pk).exists())
+
+    def test_get_delete_page_does_not_delete_issue(self):
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.get(
+            reverse(
+                "issues:delete",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                    "issue_number": self.issue.number,
+                },
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        self.assertTrue(Issue.objects.filter(pk=self.issue.pk).exists())

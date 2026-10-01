@@ -86,6 +86,13 @@
             </a>
         </p>
     {% endif %}
+    {% if workspace_membership.role == "owner" or workspace_membership.role == "manager" %}
+        <p>
+            <a href="{% url 'issues:delete' workspace.slug project.key issue.number %}">
+                Delete issue
+            </a>
+        </p>
+    {% endif %}
     <p>
         <a href="{% url 'issues:list' workspace.slug project.key %}">
             Back to issues

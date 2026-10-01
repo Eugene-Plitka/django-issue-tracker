@@ -449,3 +449,52 @@ def label_create(request, workspace_slug, project_key):
             "form": form,
         },
     )
+
+
+@login_required
+def issue_delete(
+    request,
+    workspace_slug,
+    project_key,
+    issue_number,
+):
+    workspace = get_workspace_for_user(
+        workspace_slug=workspace_slug,
+        user=request.user,
+    )
+
+    require_workspace_management(
+        workspace,
+        request.user,
+    )
+
+    project = get_project_for_user(
+        workspace=workspace,
+        project_key=project_key,
+        user=request.user,
+    )
+
+    issue = get_object_or_404(
+        Issue,
+        project=project,
+        number=issue_number,
+    )
+
+    if request.method == "POST":
+        issue.delete()
+
+        return redirect(
+            "issues:list",
+            workspace_slug=workspace.slug,
+            project_key=project.key,
+        )
+
+    return render(
+        request,
+        "issues/issue_confirm_delete.html",
+        {
+            "workspace": workspace,
+            "project": project,
+            "issue": issue,
+        },
+    )

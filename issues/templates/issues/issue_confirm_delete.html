@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Issue{% endblock %}
+
+{% block content %}
+    <h1>
+        Delete {{ project.key }}-{{ issue.number }}
+    </h1>
+
+    <p>
+        Are you sure you want to delete
+        "{{ issue.title }}"?
+    </p>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">
+            Delete issue
+        </button>
+    </form>
+
+    <p>
+        <a href="{% url 'issues:detail' workspace.slug project.key issue.number %}">
+            Cancel
+        </a>
+    </p>
+{% endblock %}
