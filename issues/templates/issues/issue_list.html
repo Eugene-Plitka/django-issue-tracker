@@ -23,7 +23,13 @@
             <li>No issues yet.</li>
         {% endfor %}
     </ul>
-
+    {% if workspace_membership.role != "viewer" %}
+        <p>
+            <a href="{% url 'issues:create' workspace.slug project.key %}">
+                Create issue
+            </a>
+        </p>
+    {% endif %}
     <p>
         <a href="{% url 'projects:detail' workspace.slug project.key %}">
             Back to project

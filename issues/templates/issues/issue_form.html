@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Create Issue{% endblock %}
+
+{% block content %}
+    <h1>Create issue in {{ project.key }}</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <button type="submit">Create issue</button>
+    </form>
+
+    <p>
+        <a href="{% url 'issues:list' workspace.slug project.key %}">
+            Back to issues
+        </a>
+    </p>
+{% endblock %}
