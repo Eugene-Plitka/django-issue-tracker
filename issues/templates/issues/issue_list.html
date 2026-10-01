@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project.key }} Issues{% endblock %}
+
+{% block content %}
+    <h1>{{ project.key }} Issues</h1>
+
+    <ul>
+        {% for issue in issues %}
+            <li>
+                {{ project.key }}-{{ issue.number }}
+                — {{ issue.title }}
+                — {{ issue.get_status_display }}
+                — {{ issue.get_priority_display }}
+
+                {% if issue.assignee %}
+                    — {{ issue.assignee.email }}
+                {% else %}
+                    — Unassigned
+                {% endif %}
+            </li>
+        {% empty %}
+            <li>No issues yet.</li>
+        {% endfor %}
+    </ul>
+
+    <p>
+        <a href="{% url 'projects:detail' workspace.slug project.key %}">
+            Back to project
+        </a>
+    </p>
+{% endblock %}

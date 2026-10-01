@@ -18,6 +18,11 @@
         </p>
     {% endif %}
     <p>
+        <a href="{% url 'issues:list' workspace.slug project.key %}">
+            Issues
+        </a>
+    </p>
+    <p>
         <a href="{% url 'projects:member-list' workspace.slug project.key %}">
             Project members
         </a>

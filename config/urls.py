@@ -27,4 +27,8 @@ urlpatterns = [
         "workspaces/<slug:workspace_slug>/projects/",
         include("projects.urls"),
     ),
+    path(
+        "workspaces/<slug:workspace_slug>/projects/<str:project_key>/issues/",
+        include("issues.urls"),
+    ),
 ]
