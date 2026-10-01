@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {{ project.key }}-{{ issue.number }} - {{ issue.title }}
+{% endblock %}
+
+{% block content %}
+    <h1>
+        {{ project.key }}-{{ issue.number }}
+        — {{ issue.title }}
+    </h1>
+
+    <p>{{ issue.description }}</p>
+
+    <p>Status: {{ issue.get_status_display }}</p>
+    <p>Priority: {{ issue.get_priority_display }}</p>
+    <p>Reporter: {{ issue.reporter.email }}</p>
+
+    <p>
+        Assignee:
+        {% if issue.assignee %}
+            {{ issue.assignee.email }}
+        {% else %}
+            Unassigned
+        {% endif %}
+    </p>
+
+    <h2>Labels</h2>
+
+    <ul>
+        {% for label in issue.labels.all %}
+            <li>{{ label.name }}</li>
+        {% empty %}
+            <li>No labels.</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Comments</h2>
+
+    <ul>
+        {% for comment in issue.comments.all %}
+            <li>
+                {{ comment.author.email }}:
+                {{ comment.body }}
+            </li>
+        {% empty %}
+            <li>No comments yet.</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Activity</h2>
+
+    <ul>
+        {% for activity in issue.activities.all %}
+            <li>
+                {{ activity.actor.email }}
+                — {{ activity.action }}
+                — {{ activity.field }}
+                — {{ activity.old_value }}
+                → {{ activity.new_value }}
+            </li>
+        {% empty %}
+            <li>No activity yet.</li>
+        {% endfor %}
+    </ul>
+
+    <p>
+        <a href="{% url 'issues:list' workspace.slug project.key %}">
+            Back to issues
+        </a>
+    </p>
+{% endblock %}

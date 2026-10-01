@@ -8,7 +8,9 @@
     <ul>
         {% for issue in issues %}
             <li>
-                {{ project.key }}-{{ issue.number }}
+                <a href="{% url 'issues:detail' workspace.slug project.key issue.number %}">
+                    {{ project.key }}-{{ issue.number }}
+                </a>
                 — {{ issue.title }}
                 — {{ issue.get_status_display }}
                 — {{ issue.get_priority_display }}

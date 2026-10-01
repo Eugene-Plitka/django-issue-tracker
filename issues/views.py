@@ -124,3 +124,57 @@ def issue_create(request, workspace_slug, project_key):
             "form": form,
         },
     )
+
+
+@login_required
+def issue_detail(request, workspace_slug, project_key, issue_number):
+    workspace = get_object_or_404(
+        Workspace,
+        slug=workspace_slug,
+        memberships__user=request.user,
+    )
+
+    workspace_membership = workspace.memberships.get(
+        user=request.user,
+    )
+
+    if workspace_membership.role in {
+        WorkspaceMembership.Role.OWNER,
+        WorkspaceMembership.Role.MANAGER,
+    }:
+        project = get_object_or_404(
+            Project,
+            workspace=workspace,
+            key=project_key,
+        )
+    else:
+        project = get_object_or_404(
+            Project,
+            workspace=workspace,
+            key=project_key,
+            memberships__user=request.user,
+        )
+
+    issue = get_object_or_404(
+        Issue.objects.select_related(
+            "reporter",
+            "assignee",
+        ).prefetch_related(
+            "labels",
+            "comments__author",
+            "activities__actor",
+        ),
+        project=project,
+        number=issue_number,
+    )
+
+    return render(
+        request,
+        "issues/issue_detail.html",
+        {
+            "workspace": workspace,
+            "project": project,
+            "issue": issue,
+            "workspace_membership": workspace_membership,
+        },
+    )
