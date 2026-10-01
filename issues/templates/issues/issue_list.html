@@ -6,6 +6,36 @@
     <h1>{{ project.key }} Issues</h1>
 
     <form method="get">
+        <label for="sort">Sort:</label>
+        <select name="sort" id="sort">
+            <option
+                value="created"
+                {% if selected_sort == "created" %}selected{% endif %}
+            >
+                Newest
+            </option>
+
+            <option
+                value="updated"
+                {% if selected_sort == "updated" %}selected{% endif %}
+            >
+                Recently updated
+            </option>
+
+            <option
+                value="priority"
+                {% if selected_sort == "priority" %}selected{% endif %}
+            >
+                Priority
+            </option>
+
+            <option
+                value="status"
+                {% if selected_sort == "status" %}selected{% endif %}
+            >
+                Status
+            </option>
+        </select>
         <label for="q">Search:</label>
         <input
             type="text"

@@ -1239,3 +1239,58 @@ class IssueFilterTests(TestCase):
 
         self.assertContains(response, "First issue")
         self.assertNotContains(response, "Second issue")
+
+    def test_sort_issues_by_priority(self):
+        self.issue_one.priority = Issue.Priority.LOW
+        self.issue_one.save()
+
+        self.issue_two.priority = Issue.Priority.CRITICAL
+        self.issue_two.save()
+
+        response = self.client.get(
+            reverse(
+                "issues:list",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                },
+            ),
+            {
+                "sort": "priority",
+            },
+        )
+
+        issues = list(response.context["issues"])
+
+        self.assertEqual(
+            issues[0],
+            self.issue_two,
+        )
+        self.assertEqual(
+            issues[1],
+            self.issue_one,
+        )
+
+    def test_sort_issues_by_updated(self):
+        self.issue_one.title = "Updated issue"
+        self.issue_one.save()
+
+        response = self.client.get(
+            reverse(
+                "issues:list",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                },
+            ),
+            {
+                "sort": "updated",
+            },
+        )
+
+        issues = list(response.context["issues"])
+
+        self.assertEqual(
+            issues[0],
+            self.issue_one,
+        )

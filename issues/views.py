@@ -2,7 +2,7 @@ import re
 
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.db.models import Q
+from django.db.models import Case, IntegerField, Value, When, Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.models import User
@@ -68,6 +68,7 @@ def issue_list(request, workspace_slug, project_key):
     assignee = request.GET.get("assignee")
     label = request.GET.get("label")
     query = request.GET.get("q")
+    sort = request.GET.get("sort", "created")
 
     if status:
         issues = issues.filter(status=status)
@@ -103,9 +104,28 @@ def issue_list(request, workspace_slug, project_key):
 
     issues = issues.distinct()
 
+    issues = issues.annotate(
+        priority_order=Case(
+            When(priority=Issue.Priority.CRITICAL, then=Value(1)),
+            When(priority=Issue.Priority.HIGH, then=Value(2)),
+            When(priority=Issue.Priority.MEDIUM, then=Value(3)),
+            When(priority=Issue.Priority.LOW, then=Value(4)),
+            output_field=IntegerField(),
+        )
+    )
+
     assignees = User.objects.filter(
         project_memberships__project=project,
     ).distinct()
+
+    sort_options = {
+        "created": "-created_at",
+        "updated": "-updated_at",
+        "priority": "priority_order",
+        "status": "status",
+    }
+
+    issues = issues.order_by(sort_options.get(sort, "-created_at"))
 
     labels = project.labels.all()
 
@@ -126,6 +146,7 @@ def issue_list(request, workspace_slug, project_key):
             "status_choices": Issue.Status.choices,
             "priority_choices": Issue.Priority.choices,
             "search_query": query,
+            "selected_sort": sort,
         },
     )
 
