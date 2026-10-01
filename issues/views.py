@@ -1,5 +1,8 @@
+import re
+
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.models import User
@@ -64,6 +67,7 @@ def issue_list(request, workspace_slug, project_key):
     priority = request.GET.get("priority")
     assignee = request.GET.get("assignee")
     label = request.GET.get("label")
+    query = request.GET.get("q")
 
     if status:
         issues = issues.filter(status=status)
@@ -76,6 +80,26 @@ def issue_list(request, workspace_slug, project_key):
 
     if label:
         issues = issues.filter(labels__id=label)
+
+    if query:
+        issue_key_match = re.fullmatch(
+            r"([A-Za-z0-9_-]+)-(\d+)",
+            query.strip(),
+        )
+
+        if issue_key_match:
+            project_key, issue_number = issue_key_match.groups()
+
+            issues = issues.filter(
+                project__key__iexact=project_key,
+                number=issue_number,
+            )
+        else:
+            issues = issues.filter(
+                Q(title__icontains=query)
+                | Q(description__icontains=query)
+                | Q(project__key__icontains=query)
+            )
 
     issues = issues.distinct()
 
@@ -101,6 +125,7 @@ def issue_list(request, workspace_slug, project_key):
             "selected_label": label,
             "status_choices": Issue.Status.choices,
             "priority_choices": Issue.Priority.choices,
+            "search_query": query,
         },
     )
 

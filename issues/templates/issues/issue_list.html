@@ -6,6 +6,14 @@
     <h1>{{ project.key }} Issues</h1>
 
     <form method="get">
+        <label for="q">Search:</label>
+        <input
+            type="text"
+            name="q"
+            id="q"
+            value="{{ search_query|default:'' }}"
+            placeholder="Title or description"
+        >
         <label for="status">Status:</label>
         <select name="status" id="status">
             <option value="">All</option>

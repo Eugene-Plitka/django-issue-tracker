@@ -1171,3 +1171,71 @@ class IssueFilterTests(TestCase):
 
         self.assertContains(response, "First issue")
         self.assertNotContains(response, "Second issue")
+
+    def test_search_issues_by_title(self):
+        response = self.client.get(
+            reverse(
+                "issues:list",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                },
+            ),
+            {
+                "q": "First",
+            },
+        )
+
+        self.assertContains(response, "First issue")
+        self.assertNotContains(response, "Second issue")
+
+    def test_search_issues_by_project_key(self):
+        response = self.client.get(
+            reverse(
+                "issues:list",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                },
+            ),
+            {
+                "q": "back",
+            },
+        )
+
+        self.assertContains(response, "First issue")
+        self.assertContains(response, "Second issue")
+
+    def test_search_issue_by_full_key(self):
+        response = self.client.get(
+            reverse(
+                "issues:list",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                },
+            ),
+            {
+                "q": "BACK-1",
+            },
+        )
+
+        self.assertContains(response, "First issue")
+        self.assertNotContains(response, "Second issue")
+
+    def test_search_issue_by_full_key_is_case_insensitive(self):
+        response = self.client.get(
+            reverse(
+                "issues:list",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                },
+            ),
+            {
+                "q": "back-1",
+            },
+        )
+
+        self.assertContains(response, "First issue")
+        self.assertNotContains(response, "Second issue")
