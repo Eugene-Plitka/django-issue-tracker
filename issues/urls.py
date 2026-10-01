@@ -16,6 +16,16 @@ urlpatterns = [
         name="update",
     ),
     path(
+        "labels/create/",
+        views.label_create,
+        name="label-create",
+    ),
+    path(
+        "labels/",
+        views.label_list,
+        name="label-list",
+    ),
+    path(
         "<int:issue_number>/",
         views.issue_detail,
         name="detail",

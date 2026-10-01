@@ -4,12 +4,14 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from projects.models import Project
 from workspaces.models import Workspace, WorkspaceMembership
+from workspaces.permissions import require_workspace_management
 
 from .forms import (
     CommentForm,
     IssueDeveloperForm,
     IssueForm,
     IssueManagementForm,
+    LabelForm,
 )
 from .models import Activity, Issue
 from .services import (
@@ -327,6 +329,95 @@ def issue_update(
             "workspace": workspace,
             "project": project,
             "issue": issue,
+            "form": form,
+        },
+    )
+
+
+@login_required
+def label_list(request, workspace_slug, project_key):
+    workspace = get_object_or_404(
+        Workspace,
+        slug=workspace_slug,
+        memberships__user=request.user,
+    )
+
+    workspace_membership = workspace.memberships.get(
+        user=request.user,
+    )
+
+    if workspace_membership.role in {
+        WorkspaceMembership.Role.OWNER,
+        WorkspaceMembership.Role.MANAGER,
+    }:
+        project = get_object_or_404(
+            Project,
+            workspace=workspace,
+            key=project_key,
+        )
+    else:
+        project = get_object_or_404(
+            Project,
+            workspace=workspace,
+            key=project_key,
+            memberships__user=request.user,
+        )
+
+    labels = project.labels.all()
+
+    return render(
+        request,
+        "issues/label_list.html",
+        {
+            "workspace": workspace,
+            "project": project,
+            "labels": labels,
+            "workspace_membership": workspace_membership,
+        },
+    )
+
+
+@login_required
+def label_create(request, workspace_slug, project_key):
+    workspace = get_object_or_404(
+        Workspace,
+        slug=workspace_slug,
+        memberships__user=request.user,
+    )
+
+    require_workspace_management(
+        workspace,
+        request.user,
+    )
+
+    project = get_object_or_404(
+        Project,
+        workspace=workspace,
+        key=project_key,
+    )
+
+    if request.method == "POST":
+        form = LabelForm(request.POST)
+
+        if form.is_valid():
+            label = form.save(commit=False)
+            label.project = project
+            label.save()
+
+            return redirect(
+                "issues:label-list",
+                workspace_slug=workspace.slug,
+                project_key=project.key,
+            )
+    else:
+        form = LabelForm()
+
+    return render(
+        request,
+        "issues/label_form.html",
+        {
+            "workspace": workspace,
+            "project": project,
             "form": form,
         },
     )

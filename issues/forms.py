@@ -2,7 +2,7 @@ from django import forms
 
 from accounts.models import User
 
-from .models import Comment, Issue
+from .models import Comment, Issue, Label
 
 
 class IssueForm(forms.ModelForm):
@@ -93,3 +93,9 @@ class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
         fields = ("body",)
+
+
+class LabelForm(forms.ModelForm):
+    class Meta:
+        model = Label
+        fields = ("name",)

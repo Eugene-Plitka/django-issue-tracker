@@ -23,6 +23,11 @@
         </a>
     </p>
     <p>
+        <a href="{% url 'issues:label-list' workspace.slug project.key %}">
+            Labels
+        </a>
+    </p>
+    <p>
         <a href="{% url 'projects:member-list' workspace.slug project.key %}">
             Project members
         </a>
