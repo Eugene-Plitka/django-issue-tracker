@@ -1,10 +1,15 @@
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
 
 from projects.models import Project
 from workspaces.models import Workspace, WorkspaceMembership
 
-from .forms import IssueForm
+from .forms import (
+    IssueDeveloperForm,
+    IssueForm,
+    IssueManagementForm,
+)
 from .models import Issue
 from .services import create_issue
 
@@ -176,5 +181,104 @@ def issue_detail(request, workspace_slug, project_key, issue_number):
             "project": project,
             "issue": issue,
             "workspace_membership": workspace_membership,
+        },
+    )
+
+
+@login_required
+def issue_update(
+    request,
+    workspace_slug,
+    project_key,
+    issue_number,
+):
+    workspace = get_object_or_404(
+        Workspace,
+        slug=workspace_slug,
+        memberships__user=request.user,
+    )
+
+    workspace_membership = workspace.memberships.get(
+        user=request.user,
+    )
+
+    if workspace_membership.role in {
+        WorkspaceMembership.Role.OWNER,
+        WorkspaceMembership.Role.MANAGER,
+    }:
+        project = get_object_or_404(
+            Project,
+            workspace=workspace,
+            key=project_key,
+        )
+    else:
+        project = get_object_or_404(
+            Project,
+            workspace=workspace,
+            key=project_key,
+            memberships__user=request.user,
+        )
+
+    issue = get_object_or_404(
+        Issue,
+        project=project,
+        number=issue_number,
+    )
+
+    if workspace_membership.role == WorkspaceMembership.Role.VIEWER:
+        raise PermissionDenied
+
+    if workspace_membership.role in {
+        WorkspaceMembership.Role.OWNER,
+        WorkspaceMembership.Role.MANAGER,
+    }:
+        form_class = IssueManagementForm
+        form_kwargs = {
+            "project": project,
+        }
+    else:
+        form_class = IssueDeveloperForm
+        form_kwargs = {
+            "project": project,
+            "user": request.user,
+        }
+
+    if request.method == "POST":
+        form = form_class(
+            request.POST,
+            instance=issue,
+            **form_kwargs,
+        )
+
+        if form.is_valid():
+            issue = form.save()
+
+            if (
+                workspace_membership.role == WorkspaceMembership.Role.DEVELOPER
+                and form.cleaned_data.get("assign_to_me")
+            ):
+                issue.assignee = request.user
+                issue.save(update_fields=["assignee"])
+
+            return redirect(
+                "issues:detail",
+                workspace_slug=workspace.slug,
+                project_key=project.key,
+                issue_number=issue.number,
+            )
+    else:
+        form = form_class(
+            instance=issue,
+            **form_kwargs,
+        )
+
+    return render(
+        request,
+        "issues/issue_form.html",
+        {
+            "workspace": workspace,
+            "project": project,
+            "issue": issue,
+            "form": form,
         },
     )

@@ -366,3 +366,184 @@ class IssueDetailTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 404)
+
+
+class IssueUpdateTests(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+        self.developer = User.objects.create_user(
+            email="developer@example.com",
+            password="TestPassword123!",
+        )
+        self.viewer = User.objects.create_user(
+            email="viewer@example.com",
+            password="TestPassword123!",
+        )
+
+        self.workspace = Workspace.objects.create(
+            name="Test Workspace",
+            slug="test-workspace",
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=self.owner,
+            role=WorkspaceMembership.Role.OWNER,
+        )
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=self.developer,
+            role=WorkspaceMembership.Role.DEVELOPER,
+        )
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=self.viewer,
+            role=WorkspaceMembership.Role.VIEWER,
+        )
+
+        self.project = Project.objects.create(
+            workspace=self.workspace,
+            name="Backend",
+            key="BACK",
+        )
+
+        ProjectMembership.objects.create(
+            project=self.project,
+            user=self.developer,
+        )
+        ProjectMembership.objects.create(
+            project=self.project,
+            user=self.viewer,
+        )
+
+        self.issue = Issue.objects.create(
+            project=self.project,
+            number=1,
+            title="Original title",
+            description="Original description",
+            reporter=self.owner,
+            priority=Issue.Priority.MEDIUM,
+        )
+
+    def test_owner_can_update_priority(self):
+        self.client.login(
+            email="owner@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "issues:update",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                    "issue_number": self.issue.number,
+                },
+            ),
+            {
+                "title": self.issue.title,
+                "description": self.issue.description,
+                "status": Issue.Status.TODO,
+                "priority": Issue.Priority.HIGH,
+                "assignee": "",
+                "labels": [],
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        self.issue.refresh_from_db()
+
+        self.assertEqual(
+            self.issue.priority,
+            Issue.Priority.HIGH,
+        )
+
+    def test_developer_cannot_change_title_of_foreign_issue(self):
+        self.client.login(
+            email="developer@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "issues:update",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                    "issue_number": self.issue.number,
+                },
+            ),
+            {
+                "title": "Hacked title",
+                "description": "Changed",
+                "status": Issue.Status.IN_PROGRESS,
+                "labels": [],
+                "assign_to_me": "",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        self.issue.refresh_from_db()
+
+        self.assertEqual(
+            self.issue.title,
+            "Original title",
+        )
+
+        self.assertEqual(
+            self.issue.status,
+            Issue.Status.IN_PROGRESS,
+        )
+
+    def test_developer_can_assign_issue_to_self(self):
+        self.client.login(
+            email="developer@example.com",
+            password="TestPassword123!",
+        )
+
+        self.client.post(
+            reverse(
+                "issues:update",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                    "issue_number": self.issue.number,
+                },
+            ),
+            {
+                "status": Issue.Status.TODO,
+                "labels": [],
+                "assign_to_me": "on",
+            },
+        )
+
+        self.issue.refresh_from_db()
+
+        self.assertEqual(
+            self.issue.assignee,
+            self.developer,
+        )
+
+    def test_viewer_cannot_open_issue_update_page(self):
+        self.client.login(
+            email="viewer@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.get(
+            reverse(
+                "issues:update",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                    "issue_number": self.issue.number,
+                },
+            )
+        )
+
+        self.assertEqual(response.status_code, 403)

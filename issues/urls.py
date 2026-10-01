@@ -11,6 +11,11 @@ urlpatterns = [
         name="create",
     ),
     path(
+        "<int:issue_number>/edit/",
+        views.issue_update,
+        name="update",
+    ),
+    path(
         "<int:issue_number>/",
         views.issue_detail,
         name="detail",

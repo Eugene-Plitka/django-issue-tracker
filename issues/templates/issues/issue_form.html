@@ -1,20 +1,44 @@
 {% extends "base.html" %}
 
-{% block title %}Create Issue{% endblock %}
+{% block title %}
+    {% if issue %}
+        Edit Issue
+    {% else %}
+        Create Issue
+    {% endif %}
+{% endblock %}
 
 {% block content %}
-    <h1>Create issue in {{ project.key }}</h1>
+    {% if issue %}
+        <h1>
+            Edit {{ project.key }}-{{ issue.number }}
+        </h1>
+    {% else %}
+        <h1>Create issue in {{ project.key }}</h1>
+    {% endif %}
 
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
 
-        <button type="submit">Create issue</button>
+        <button type="submit">
+            {% if issue %}
+                Save
+            {% else %}
+                Create issue
+            {% endif %}
+        </button>
     </form>
 
     <p>
-        <a href="{% url 'issues:list' workspace.slug project.key %}">
-            Back to issues
-        </a>
+        {% if issue %}
+            <a href="{% url 'issues:detail' workspace.slug project.key issue.number %}">
+                Back to issue
+            </a>
+        {% else %}
+            <a href="{% url 'issues:list' workspace.slug project.key %}">
+                Back to issues
+            </a>
+        {% endif %}
     </p>
 {% endblock %}
