@@ -6,10 +6,13 @@ from django.db.models import Case, IntegerField, Q, Value, When
 from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.models import User
-from projects.models import Project
 from projects.permissions import get_project_for_user
-from workspaces.models import Workspace, WorkspaceMembership
-from workspaces.permissions import require_workspace_management
+from workspaces.models import WorkspaceMembership
+from workspaces.permissions import (
+    get_workspace_for_user,
+    get_workspace_membership,
+    require_workspace_management,
+)
 
 from .forms import (
     CommentForm,
@@ -28,14 +31,14 @@ from .services import (
 
 @login_required
 def issue_list(request, workspace_slug, project_key):
-    workspace = get_object_or_404(
-        Workspace,
-        slug=workspace_slug,
-        memberships__user=request.user,
+    workspace = get_workspace_for_user(
+        workspace_slug=workspace_slug,
+        user=request.user,
     )
 
-    workspace_membership = workspace.memberships.get(
-        user=request.user,
+    workspace_membership = get_workspace_membership(
+        workspace,
+        request.user,
     )
 
     project = get_project_for_user(
@@ -143,14 +146,14 @@ def issue_list(request, workspace_slug, project_key):
 
 @login_required
 def issue_create(request, workspace_slug, project_key):
-    workspace = get_object_or_404(
-        Workspace,
-        slug=workspace_slug,
-        memberships__user=request.user,
+    workspace = get_workspace_for_user(
+        workspace_slug=workspace_slug,
+        user=request.user,
     )
 
-    workspace_membership = workspace.memberships.get(
-        user=request.user,
+    workspace_membership = get_workspace_membership(
+        workspace,
+        request.user,
     )
 
     project = get_project_for_user(
@@ -160,8 +163,6 @@ def issue_create(request, workspace_slug, project_key):
     )
 
     if workspace_membership.role == WorkspaceMembership.Role.VIEWER:
-        from django.core.exceptions import PermissionDenied
-
         raise PermissionDenied
 
     if request.method == "POST":
@@ -201,14 +202,14 @@ def issue_create(request, workspace_slug, project_key):
 
 @login_required
 def issue_detail(request, workspace_slug, project_key, issue_number):
-    workspace = get_object_or_404(
-        Workspace,
-        slug=workspace_slug,
-        memberships__user=request.user,
+    workspace = get_workspace_for_user(
+        workspace_slug=workspace_slug,
+        user=request.user,
     )
 
-    workspace_membership = workspace.memberships.get(
-        user=request.user,
+    workspace_membership = get_workspace_membership(
+        workspace,
+        request.user,
     )
 
     project = get_project_for_user(
@@ -276,14 +277,14 @@ def issue_update(
     project_key,
     issue_number,
 ):
-    workspace = get_object_or_404(
-        Workspace,
-        slug=workspace_slug,
-        memberships__user=request.user,
+    workspace = get_workspace_for_user(
+        workspace_slug=workspace_slug,
+        user=request.user,
     )
 
-    workspace_membership = workspace.memberships.get(
-        user=request.user,
+    workspace_membership = get_workspace_membership(
+        workspace,
+        request.user,
     )
 
     project = get_project_for_user(
@@ -375,14 +376,14 @@ def issue_update(
 
 @login_required
 def label_list(request, workspace_slug, project_key):
-    workspace = get_object_or_404(
-        Workspace,
-        slug=workspace_slug,
-        memberships__user=request.user,
+    workspace = get_workspace_for_user(
+        workspace_slug=workspace_slug,
+        user=request.user,
     )
 
-    workspace_membership = workspace.memberships.get(
-        user=request.user,
+    workspace_membership = get_workspace_membership(
+        workspace,
+        request.user,
     )
 
     project = get_project_for_user(
@@ -407,10 +408,9 @@ def label_list(request, workspace_slug, project_key):
 
 @login_required
 def label_create(request, workspace_slug, project_key):
-    workspace = get_object_or_404(
-        Workspace,
-        slug=workspace_slug,
-        memberships__user=request.user,
+    workspace = get_workspace_for_user(
+        workspace_slug=workspace_slug,
+        user=request.user,
     )
 
     require_workspace_management(
@@ -418,10 +418,10 @@ def label_create(request, workspace_slug, project_key):
         request.user,
     )
 
-    project = get_object_or_404(
-        Project,
+    project = get_project_for_user(
         workspace=workspace,
-        key=project_key,
+        project_key=project_key,
+        user=request.user,
     )
 
     if request.method == "POST":

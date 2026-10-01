@@ -1,8 +1,12 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 
-from workspaces.models import Workspace, WorkspaceMembership
-from workspaces.permissions import require_workspace_management
+from workspaces.models import WorkspaceMembership
+from workspaces.permissions import (
+    get_workspace_for_user,
+    get_workspace_membership,
+    require_workspace_management,
+)
 
 from .forms import ProjectForm, ProjectMemberForm
 from .models import ProjectMembership
@@ -11,14 +15,14 @@ from .permissions import get_project_for_user
 
 @login_required
 def project_list(request, workspace_slug):
-    workspace = get_object_or_404(
-        Workspace,
-        slug=workspace_slug,
-        memberships__user=request.user,
+    workspace = get_workspace_for_user(
+        workspace_slug=workspace_slug,
+        user=request.user,
     )
 
-    workspace_membership = workspace.memberships.get(
-        user=request.user,
+    workspace_membership = get_workspace_membership(
+        workspace,
+        request.user,
     )
 
     if workspace_membership.role in {
@@ -44,10 +48,9 @@ def project_list(request, workspace_slug):
 
 @login_required
 def project_create(request, workspace_slug):
-    workspace = get_object_or_404(
-        Workspace,
-        slug=workspace_slug,
-        memberships__user=request.user,
+    workspace = get_workspace_for_user(
+        workspace_slug=workspace_slug,
+        user=request.user,
     )
 
     require_workspace_management(
@@ -82,14 +85,14 @@ def project_create(request, workspace_slug):
 
 @login_required
 def project_detail(request, workspace_slug, project_key):
-    workspace = get_object_or_404(
-        Workspace,
-        slug=workspace_slug,
-        memberships__user=request.user,
+    workspace = get_workspace_for_user(
+        workspace_slug=workspace_slug,
+        user=request.user,
     )
 
-    workspace_membership = workspace.memberships.get(
-        user=request.user,
+    workspace_membership = get_workspace_membership(
+        workspace,
+        request.user,
     )
 
     project = get_project_for_user(
@@ -111,14 +114,14 @@ def project_detail(request, workspace_slug, project_key):
 
 @login_required
 def project_member_list(request, workspace_slug, project_key):
-    workspace = get_object_or_404(
-        Workspace,
-        slug=workspace_slug,
-        memberships__user=request.user,
+    workspace = get_workspace_for_user(
+        workspace_slug=workspace_slug,
+        user=request.user,
     )
 
-    workspace_membership = workspace.memberships.get(
-        user=request.user,
+    workspace_membership = get_workspace_membership(
+        workspace,
+        request.user,
     )
 
     project = get_project_for_user(
@@ -143,10 +146,9 @@ def project_member_list(request, workspace_slug, project_key):
 
 @login_required
 def project_member_add(request, workspace_slug, project_key):
-    workspace = get_object_or_404(
-        Workspace,
-        slug=workspace_slug,
-        memberships__user=request.user,
+    workspace = get_workspace_for_user(
+        workspace_slug=workspace_slug,
+        user=request.user,
     )
 
     require_workspace_management(
@@ -204,10 +206,9 @@ def project_member_delete(
     project_key,
     membership_id,
 ):
-    workspace = get_object_or_404(
-        Workspace,
-        slug=workspace_slug,
-        memberships__user=request.user,
+    workspace = get_workspace_for_user(
+        workspace_slug=workspace_slug,
+        user=request.user,
     )
 
     require_workspace_management(
@@ -249,10 +250,9 @@ def project_member_delete(
 
 @login_required
 def project_update(request, workspace_slug, project_key):
-    workspace = get_object_or_404(
-        Workspace,
-        slug=workspace_slug,
-        memberships__user=request.user,
+    workspace = get_workspace_for_user(
+        workspace_slug=workspace_slug,
+        user=request.user,
     )
 
     require_workspace_management(

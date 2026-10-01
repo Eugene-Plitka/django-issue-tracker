@@ -1,6 +1,15 @@
 from django.core.exceptions import PermissionDenied
+from django.shortcuts import get_object_or_404
 
-from .models import WorkspaceMembership
+from .models import Workspace, WorkspaceMembership
+
+
+def get_workspace_for_user(*, workspace_slug, user):
+    return get_object_or_404(
+        Workspace,
+        slug=workspace_slug,
+        memberships__user=user,
+    )
 
 
 def get_workspace_membership(workspace, user):
