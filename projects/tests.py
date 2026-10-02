@@ -433,7 +433,7 @@ class ProjectListTests(TestCase):
         )
 
     def test_developer_cannot_remove_project_member(self):
-        developer_membership = ProjectMembership.objects.create(
+        ProjectMembership.objects.create(
             project=self.project,
             user=self.developer,
         )

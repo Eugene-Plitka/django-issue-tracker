@@ -172,7 +172,7 @@ def issue_create(request, workspace_slug, project_key):
         )
 
         if form.is_valid():
-            issue = create_issue(
+            create_issue(
                 project=project,
                 reporter=request.user,
                 title=form.cleaned_data["title"],

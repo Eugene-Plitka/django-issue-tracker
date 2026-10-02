@@ -348,7 +348,7 @@ class WorkspacePermissionTests(TestCase):
             password="TestPassword123!",
         )
 
-        manager_membership = WorkspaceMembership.objects.create(
+        WorkspaceMembership.objects.create(
             workspace=self.workspace,
             user=manager,
             role=WorkspaceMembership.Role.MANAGER,
