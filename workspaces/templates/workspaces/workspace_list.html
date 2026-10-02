@@ -3,23 +3,47 @@
 {% block title %}Workspaces{% endblock %}
 
 {% block content %}
-    <h1>Workspaces</h1>
+    <div class="page-header">
+        <div>
+            <h1>Workspaces</h1>
 
-    <p>
-        <a href="{% url 'workspaces:create' %}">
+            <p class="page-subtitle">
+                Choose a workspace or create a new one.
+            </p>
+        </div>
+
+        <a
+            class="button button--primary"
+            href="{% url 'workspaces:create' %}"
+        >
             Create workspace
         </a>
-    </p>
+    </div>
 
-    <ul>
+    <div class="card-grid">
         {% for workspace in workspaces %}
-            <li>
-                <a href="{% url 'workspaces:detail' workspace.slug %}">
-                    {{ workspace.name }}
-                </a>
-            </li>
+            <a
+                class="workspace-card"
+                href="{% url 'workspaces:detail' workspace.slug %}"
+            >
+                <div>
+                    <h2>{{ workspace.name }}</h2>
+
+                    <p class="muted">
+                        {{ workspace.slug }}
+                    </p>
+                </div>
+
+                <span class="workspace-card__arrow">
+                    →
+                </span>
+            </a>
         {% empty %}
-            <li>No workspaces yet.</li>
+            <div class="card">
+                <p class="muted">
+                    No workspaces yet.
+                </p>
+            </div>
         {% endfor %}
-    </ul>
+    </div>
 {% endblock %}

@@ -9,36 +9,55 @@
 {% endblock %}
 
 {% block content %}
-    {% if issue %}
-        <h1>
-            Edit {{ project.key }}-{{ issue.number }}
-        </h1>
-    {% else %}
-        <h1>Create issue in {{ project.key }}</h1>
-    {% endif %}
 
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-
-        <button type="submit">
+    <div class="page-header">
+        <div>
             {% if issue %}
-                Save
+                <h1>Edit {{ project.key }}-{{ issue.number }}</h1>
             {% else %}
-                Create issue
+                <h1>Create issue</h1>
             {% endif %}
-        </button>
-    </form>
 
-    <p>
-        {% if issue %}
-            <a href="{% url 'issues:detail' workspace.slug project.key issue.number %}">
-                Back to issue
-            </a>
-        {% else %}
-            <a href="{% url 'issues:list' workspace.slug project.key %}">
-                Back to issues
-            </a>
-        {% endif %}
-    </p>
+            <p class="page-subtitle">
+                Project {{ project.key }} — {{ project.name }}
+            </p>
+        </div>
+    </div>
+
+    <div class="form-card">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+
+            <div class="form-actions">
+                <button
+                    class="button button--primary"
+                    type="submit"
+                >
+                    {% if issue %}
+                        Save changes
+                    {% else %}
+                        Create issue
+                    {% endif %}
+                </button>
+
+                {% if issue %}
+                    <a
+                        class="button button--secondary"
+                        href="{% url 'issues:detail' workspace.slug project.key issue.number %}"
+                    >
+                        Cancel
+                    </a>
+                {% else %}
+                    <a
+                        class="button button--secondary"
+                        href="{% url 'issues:list' workspace.slug project.key %}"
+                    >
+                        Cancel
+                    </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
 {% endblock %}

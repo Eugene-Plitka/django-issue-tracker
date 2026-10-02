@@ -3,20 +3,36 @@
 {% block title %}Edit Member Role{% endblock %}
 
 {% block content %}
-    <h1>Edit member role</h1>
+    <div class="page-header">
+        <div>
+            <h1>Edit member role</h1>
 
-    <p>{{ membership.user.email }}</p>
+            <p class="page-subtitle">
+                {{ membership.user.email }}
+            </p>
+        </div>
+    </div>
 
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
+    <div class="form-card">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
 
-        <button type="submit">Save role</button>
-    </form>
+            <div class="form-actions">
+                <button
+                    class="button button--primary"
+                    type="submit"
+                >
+                    Save role
+                </button>
 
-    <p>
-        <a href="{% url 'workspaces:member-list' workspace.slug %}">
-            Back to members
-        </a>
-    </p>
+                <a
+                    class="button button--secondary"
+                    href="{% url 'workspaces:member-list' workspace.slug %}"
+                >
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
 {% endblock %}

@@ -3,18 +3,38 @@
 {% block title %}Create Label{% endblock %}
 
 {% block content %}
-    <h1>Create label for {{ project.key }}</h1>
 
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
+    <div class="page-header">
+        <div>
+            <h1>Create label</h1>
 
-        <button type="submit">Create label</button>
-    </form>
+            <p class="page-subtitle">
+                Project {{ project.key }} — {{ project.name }}
+            </p>
+        </div>
+    </div>
 
-    <p>
-        <a href="{% url 'issues:label-list' workspace.slug project.key %}">
-            Back to labels
-        </a>
-    </p>
+    <div class="form-card">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+
+            <div class="form-actions">
+                <button
+                    class="button button--primary"
+                    type="submit"
+                >
+                    Create label
+                </button>
+
+                <a
+                    class="button button--secondary"
+                    href="{% url 'issues:label-list' workspace.slug project.key %}"
+                >
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+
 {% endblock %}

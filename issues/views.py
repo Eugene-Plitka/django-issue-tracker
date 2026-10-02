@@ -1,5 +1,6 @@
 import re
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Case, IntegerField, Q, Value, When
@@ -181,6 +182,11 @@ def issue_create(request, workspace_slug, project_key):
                 assignee=form.cleaned_data["assignee"],
             )
 
+            messages.success(
+                request,
+                "Issue created successfully.",
+            )
+
             return redirect(
                 "issues:list",
                 workspace_slug=workspace.slug,
@@ -246,6 +252,11 @@ def issue_detail(request, workspace_slug, project_key, issue_number):
             create_comment_activity(
                 issue=issue,
                 actor=request.user,
+            )
+
+            messages.success(
+                request,
+                "Comment added successfully.",
             )
 
             return redirect(
@@ -349,6 +360,11 @@ def issue_update(
                     old_value=old_assignee.email if old_assignee else "",
                     new_value=request.user.email,
                 )
+
+            messages.success(
+                request,
+                "Issue updated successfully.",
+            )
 
             return redirect(
                 "issues:detail",
@@ -482,6 +498,11 @@ def issue_delete(
 
     if request.method == "POST":
         issue.delete()
+
+        messages.success(
+            request,
+            "Issue deleted successfully.",
+        )
 
         return redirect(
             "issues:list",

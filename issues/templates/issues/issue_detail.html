@@ -5,97 +5,198 @@
 {% endblock %}
 
 {% block content %}
-    <h1>
-        {{ project.key }}-{{ issue.number }}
-        — {{ issue.title }}
-    </h1>
 
-    <p>{{ issue.description }}</p>
+    <div class="page-header">
+        <div>
+            <h1>
+                {{ project.key }}-{{ issue.number }}
+                — {{ issue.title }}
+            </h1>
 
-    <p>Status: {{ issue.get_status_display }}</p>
-    <p>Priority: {{ issue.get_priority_display }}</p>
-    <p>Reporter: {{ issue.reporter.email }}</p>
+            <p class="page-subtitle">
+                Reported by {{ issue.reporter.email }}
+            </p>
+        </div>
 
-    <p>
-        Assignee:
-        {% if issue.assignee %}
-            {{ issue.assignee.email }}
-        {% else %}
-            Unassigned
+        <div class="page-header__actions">
+            {% if workspace_membership.role != "viewer" %}
+                <a
+                    class="button button--primary"
+                    href="{% url 'issues:update' workspace.slug project.key issue.number %}"
+                >
+                    Edit issue
+                </a>
+            {% endif %}
+
+            {% if workspace_membership.role == "owner" or workspace_membership.role == "manager" %}
+                <a
+                    class="button button--danger"
+                    href="{% url 'issues:delete' workspace.slug project.key issue.number %}"
+                >
+                    Delete issue
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+
+    <div class="issue-layout">
+        <section class="card">
+            <h2>Description</h2>
+
+            {% if issue.description %}
+                <p class="issue-description">
+                    {{ issue.description|linebreaksbr }}
+                </p>
+            {% else %}
+                <p class="muted">
+                    No description.
+                </p>
+            {% endif %}
+        </section>
+
+        <aside class="card">
+            <h2>Details</h2>
+
+            <dl class="details-list">
+                <div>
+                    <dt>Status</dt>
+                    <dd>
+                        <span class="badge badge--status-{{ issue.status }}">
+                            {{ issue.get_status_display }}
+                        </span>
+                    </dd>
+                </div>
+
+                <div>
+                    <dt>Priority</dt>
+                    <dd>
+                        <span class="badge badge--priority-{{ issue.priority }}">
+                            {{ issue.get_priority_display }}
+                        </span>
+                    </dd>
+                </div>
+
+                <div>
+                    <dt>Assignee</dt>
+                    <dd>
+                        {% if issue.assignee %}
+                            {{ issue.assignee.email }}
+                        {% else %}
+                            <span class="muted">Unassigned</span>
+                        {% endif %}
+                    </dd>
+                </div>
+
+                <div>
+                    <dt>Reporter</dt>
+                    <dd>{{ issue.reporter.email }}</dd>
+                </div>
+            </dl>
+        </aside>
+    </div>
+
+
+    <section class="card">
+        <h2>Labels</h2>
+
+        <div class="labels-list">
+            {% for label in issue.labels.all %}
+                <span class="label-chip">
+                    {{ label.name }}
+                </span>
+            {% empty %}
+                <span class="muted">
+                    No labels.
+                </span>
+            {% endfor %}
+        </div>
+    </section>
+
+
+    <section class="card">
+        <h2>Comments</h2>
+
+        <div class="comments-list">
+            {% for comment in issue.comments.all %}
+                <div class="comment">
+                    <div class="comment__header">
+                        <strong>{{ comment.author.email }}</strong>
+
+                        <span class="muted">
+                            {{ comment.created_at|date:"Y-m-d H:i" }}
+                        </span>
+                    </div>
+
+                    <div class="comment__body">
+                        {{ comment.body|linebreaksbr }}
+                    </div>
+                </div>
+            {% empty %}
+                <p class="muted">
+                    No comments yet.
+                </p>
+            {% endfor %}
+        </div>
+
+        {% if workspace_membership.role != "viewer" %}
+            <div class="comment-form">
+                <h3>Add comment</h3>
+
+                <form method="post">
+                    {% csrf_token %}
+                    {{ comment_form.as_p }}
+
+                    <button
+                        class="button button--primary"
+                        type="submit"
+                    >
+                        Add comment
+                    </button>
+                </form>
+            </div>
         {% endif %}
-    </p>
+    </section>
 
-    <h2>Labels</h2>
 
-    <ul>
-        {% for label in issue.labels.all %}
-            <li>{{ label.name }}</li>
-        {% empty %}
-            <li>No labels.</li>
-        {% endfor %}
-    </ul>
+    <section class="card">
+        <h2>Activity</h2>
 
-    <h2>Comments</h2>
+        <ul class="activity-list">
+            {% for activity in issue.activities.all %}
+                <li>
+                    {% if activity.action == "created" %}
+                        {{ activity.actor.email }}
+                        created issue
 
-    <ul>
-        {% for comment in issue.comments.all %}
-            <li>
-                {{ comment.author.email }}:
-                {{ comment.body }}
-            </li>
-        {% empty %}
-            <li>No comments yet.</li>
-        {% endfor %}
-    </ul>
+                    {% elif activity.action == "commented" %}
+                        {{ activity.actor.email }}
+                        commented
 
-    <h2>Activity</h2>
+                    {% else %}
+                        {{ activity.actor.email }}
+                        changed
+                        <strong>{{ activity.field }}</strong>
+                        from
+                        <span>{{ activity.old_value|default:"—" }}</span>
+                        to
+                        <span>{{ activity.new_value|default:"—" }}</span>
+                    {% endif %}
+                </li>
 
-    <ul>
-        {% for activity in issue.activities.all %}
-            <li>
-                {% if activity.action == "created" %}
-                    {{ activity.actor.email }} created issue
-                {% elif activity.action == "commented" %}
-                    {{ activity.actor.email }} commented
-                {% else %}
-                    {{ activity.actor.email }}
-                    — {{ activity.action }}
-                    — {{ activity.field }}
-                    — {{ activity.old_value }}
-                    → {{ activity.new_value }}
-                {% endif %}
-            </li>
-        {% empty %}
-            <li>No activity yet.</li>
-        {% endfor %}
-    </ul>
-    {% if workspace_membership.role != "viewer" %}
-        <h3>Add comment</h3>
+            {% empty %}
+                <li class="muted">
+                    No activity yet.
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
 
-        <form method="post">
-            {% csrf_token %}
-            {{ comment_form.as_p }}
 
-            <button type="submit">Add comment</button>
-        </form>
-    {% endif %}
-    {% if workspace_membership.role != "viewer" %}
-        <p>
-            <a href="{% url 'issues:update' workspace.slug project.key issue.number %}">
-                Edit issue
-            </a>
-        </p>
-    {% endif %}
-    {% if workspace_membership.role == "owner" or workspace_membership.role == "manager" %}
-        <p>
-            <a href="{% url 'issues:delete' workspace.slug project.key issue.number %}">
-                Delete issue
-            </a>
-        </p>
-    {% endif %}
     <p>
         <a href="{% url 'issues:list' workspace.slug project.key %}">
-            Back to issues
+            ← Back to issues
         </a>
     </p>
+
 {% endblock %}

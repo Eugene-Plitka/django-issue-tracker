@@ -3,26 +3,86 @@
 {% block title %}{{ workspace.name }}{% endblock %}
 
 {% block content %}
-    <h1>{{ workspace.name }}</h1>
 
-    <p>Slug: {{ workspace.slug }}</p>
-    <p>Created: {{ workspace.created_at }}</p>
-    <p>Your role: {{ membership.get_role_display }}</p>
-    {% if membership.role == "owner" %}
-        <p>
-            <a href="{% url 'workspaces:update' workspace.slug %}">
+    <div class="page-header">
+        <div>
+            <h1>{{ workspace.name }}</h1>
+
+            <p class="page-subtitle">
+                Workspace overview
+            </p>
+        </div>
+
+        {% if membership.role == "owner" %}
+            <a
+                class="button button--primary"
+                href="{% url 'workspaces:update' workspace.slug %}"
+            >
                 Edit workspace
             </a>
-        </p>
-        <p>
-            <a href="{% url 'workspaces:member-list' workspace.slug %}">
-                Members
-            </a>
-        </p>
-        <p>
-            <a href="{% url 'projects:list' workspace.slug %}">
-                Projects
-            </a>
-        </p>
-    {% endif %}
+        {% endif %}
+    </div>
+
+
+    <div class="issue-layout">
+
+        <section class="card">
+            <h2>Workspace details</h2>
+
+            <dl class="details-list">
+                <div>
+                    <dt>Slug</dt>
+                    <dd>{{ workspace.slug }}</dd>
+                </div>
+
+                <div>
+                    <dt>Created</dt>
+                    <dd>{{ workspace.created_at|date:"Y-m-d H:i" }}</dd>
+                </div>
+
+                <div>
+                    <dt>Your role</dt>
+                    <dd>{{ membership.get_role_display }}</dd>
+                </div>
+            </dl>
+        </section>
+
+
+        <aside class="card">
+            <h2>Workspace sections</h2>
+
+            <div class="action-list">
+                <a
+                    class="action-card"
+                    href="{% url 'projects:list' workspace.slug %}"
+                >
+                    <strong>Projects</strong>
+
+                    <span class="muted">
+                        View available projects
+                    </span>
+                </a>
+
+                <a
+                    class="action-card"
+                    href="{% url 'workspaces:member-list' workspace.slug %}"
+                >
+                    <strong>Members</strong>
+
+                    <span class="muted">
+                        View workspace members
+                    </span>
+                </a>
+            </div>
+        </aside>
+
+    </div>
+
+
+    <p>
+        <a href="{% url 'workspaces:list' %}">
+            ← Back to workspaces
+        </a>
+    </p>
+
 {% endblock %}

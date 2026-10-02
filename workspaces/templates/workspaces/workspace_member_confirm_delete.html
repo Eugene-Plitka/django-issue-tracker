@@ -3,21 +3,38 @@
 {% block title %}Remove Member{% endblock %}
 
 {% block content %}
-    <h1>Remove member</h1>
+    <div class="form-card danger-card">
+        <h1>Remove member?</h1>
 
-    <p>
-        Remove {{ membership.user.email }}
-        from {{ workspace.name }}?
-    </p>
+        <p>
+            Remove
+            <strong>{{ membership.user.email }}</strong>
+            from
+            <strong>{{ workspace.name }}</strong>?
+        </p>
 
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit">Remove</button>
-    </form>
+        <p class="muted">
+            The user will lose access granted through this workspace membership.
+        </p>
 
-    <p>
-        <a href="{% url 'workspaces:member-list' workspace.slug %}">
-            Cancel
-        </a>
-    </p>
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-actions">
+                <button
+                    class="button button--danger"
+                    type="submit"
+                >
+                    Remove member
+                </button>
+
+                <a
+                    class="button button--secondary"
+                    href="{% url 'workspaces:member-list' workspace.slug %}"
+                >
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
 {% endblock %}

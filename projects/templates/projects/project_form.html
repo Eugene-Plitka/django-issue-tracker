@@ -9,34 +9,59 @@
 {% endblock %}
 
 {% block content %}
-    {% if project %}
-        <h1>Edit {{ project.key }}</h1>
-    {% else %}
-        <h1>Create project in {{ workspace.name }}</h1>
-    {% endif %}
 
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-
-        <button type="submit">
+    <div class="page-header">
+        <div>
             {% if project %}
-                Save
-            {% else %}
-                Create
-            {% endif %}
-        </button>
-    </form>
+                <h1>Edit {{ project.key }}</h1>
 
-    <p>
-        {% if project %}
-            <a href="{% url 'projects:detail' workspace.slug project.key %}">
-                Back to project
-            </a>
-        {% else %}
-            <a href="{% url 'projects:list' workspace.slug %}">
-                Back to projects
-            </a>
-        {% endif %}
-    </p>
+                <p class="page-subtitle">
+                    Update project settings.
+                </p>
+            {% else %}
+                <h1>Create project</h1>
+
+                <p class="page-subtitle">
+                    Workspace {{ workspace.name }}
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="form-card">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+
+            <div class="form-actions">
+                <button
+                    class="button button--primary"
+                    type="submit"
+                >
+                    {% if project %}
+                        Save changes
+                    {% else %}
+                        Create project
+                    {% endif %}
+                </button>
+
+                {% if project %}
+                    <a
+                        class="button button--secondary"
+                        href="{% url 'projects:detail' workspace.slug project.key %}"
+                    >
+                        Cancel
+                    </a>
+                {% else %}
+                    <a
+                        class="button button--secondary"
+                        href="{% url 'projects:list' workspace.slug %}"
+                    >
+                        Cancel
+                    </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
 {% endblock %}

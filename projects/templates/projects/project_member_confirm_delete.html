@@ -3,21 +3,38 @@
 {% block title %}Remove Project Member{% endblock %}
 
 {% block content %}
-    <h1>Remove project member</h1>
+    <div class="form-card danger-card">
+        <h1>Remove project member?</h1>
 
-    <p>
-        Remove {{ membership.user.email }}
-        from project {{ project.key }}?
-    </p>
+        <p>
+            Remove
+            <strong>{{ membership.user.email }}</strong>
+            from project
+            <strong>{{ project.key }}</strong>?
+        </p>
 
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit">Remove</button>
-    </form>
+        <p class="muted">
+            The user will lose direct access to this project.
+        </p>
 
-    <p>
-        <a href="{% url 'projects:member-list' workspace.slug project.key %}">
-            Cancel
-        </a>
-    </p>
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-actions">
+                <button
+                    class="button button--danger"
+                    type="submit"
+                >
+                    Remove member
+                </button>
+
+                <a
+                    class="button button--secondary"
+                    href="{% url 'projects:member-list' workspace.slug project.key %}"
+                >
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
 {% endblock %}

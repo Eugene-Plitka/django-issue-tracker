@@ -1,24 +1,60 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}Issue Tracker{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}Issue Tracker{% endblock %}
+    </title>
+
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 </head>
 <body>
-    <nav>
-        <a href="{% url 'workspaces:list' %}">Workspaces</a>
+    <header class="navbar">
+        <div class="container navbar__content">
+            <a
+                class="navbar__brand"
+                href="{% url 'workspaces:list' %}"
+            >
+                Issue Tracker
+            </a>
 
-        {% if user.is_authenticated %}
-            <form method="post" action="{% url 'logout' %}">
-                {% csrf_token %}
-                <button type="submit">Logout</button>
-            </form>
-        {% else %}
-            <a href="{% url 'login' %}">Login</a>
+            {% if user.is_authenticated %}
+                <div class="navbar__actions">
+                    <span class="navbar__user">
+                        {{ user.email }}
+                    </span>
+
+                    <form
+                        method="post"
+                        action="{% url 'logout' %}"
+                    >
+                        {% csrf_token %}
+                        <button
+                            class="button button--secondary"
+                            type="submit"
+                        >
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </header>
+
+    <main class="container page">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="message message--{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
         {% endif %}
-    </nav>
-
-    <main>
         {% block content %}
         {% endblock %}
     </main>

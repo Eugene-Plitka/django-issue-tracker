@@ -3,34 +3,66 @@
 {% block title %}{{ project.key }} Members{% endblock %}
 
 {% block content %}
-    <h1>{{ project.key }} - Project Members</h1>
+    <div class="page-header">
+        <div>
+            <h1>{{ project.key }} Project Members</h1>
 
-    <ul>
-        {% for membership in memberships %}
-            <li>
-                {{ membership.user.email }}
+            <p class="page-subtitle">
+                Manage access to {{ project.name }}.
+            </p>
+        </div>
 
-                {% if workspace_membership.role == "owner" or workspace_membership.role == "manager" %}
-                    <a href="{% url 'projects:member-delete' workspace.slug project.key membership.id %}">
-                        Remove
-                    </a>
-                {% endif %}
-            </li>
-        {% empty %}
-            <li>No project members yet.</li>
-        {% endfor %}
-    </ul>
-
-    {% if workspace_membership.role == "owner" or workspace_membership.role == "manager" %}
-        <p>
-            <a href="{% url 'projects:member-add' workspace.slug project.key %}">
+        {% if workspace_membership.role == "owner" or workspace_membership.role == "manager" %}
+            <a
+                class="button button--primary"
+                href="{% url 'projects:member-add' workspace.slug project.key %}"
+            >
                 Add project member
             </a>
-        </p>
-    {% endif %}
+        {% endif %}
+    </div>
+
+    <div class="table-card">
+        <table class="members-table">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for membership in memberships %}
+                    <tr>
+                        <td>{{ membership.user.email }}</td>
+
+                        <td>
+                            {% if workspace_membership.role == "owner" or workspace_membership.role == "manager" %}
+                                <a
+                                    class="danger-link"
+                                    href="{% url 'projects:member-delete' workspace.slug project.key membership.id %}"
+                                >
+                                    Remove
+                                </a>
+                            {% else %}
+                                <span class="muted">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="2" class="empty-state">
+                            No project members yet.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
     <p>
         <a href="{% url 'projects:detail' workspace.slug project.key %}">
-            Back to project
+            ← Back to project
         </a>
     </p>
 {% endblock %}

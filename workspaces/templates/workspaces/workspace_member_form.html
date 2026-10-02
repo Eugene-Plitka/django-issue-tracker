@@ -3,19 +3,36 @@
 {% block title %}Add Member{% endblock %}
 
 {% block content %}
-    <h1>Add member to {{ workspace.name }}</h1>
+    <div class="page-header">
+        <div>
+            <h1>Add member</h1>
 
-    <form method="post">
-        {% csrf_token %}
+            <p class="page-subtitle">
+                Workspace: {{ workspace.name }}
+            </p>
+        </div>
+    </div>
 
-        {{ form.as_p }}
+    <div class="form-card">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
 
-        <button type="submit">Add member</button>
-    </form>
+            <div class="form-actions">
+                <button
+                    class="button button--primary"
+                    type="submit"
+                >
+                    Add member
+                </button>
 
-    <p>
-        <a href="{% url 'workspaces:member-list' workspace.slug %}">
-            Back to members
-        </a>
-    </p>
+                <a
+                    class="button button--secondary"
+                    href="{% url 'workspaces:member-list' workspace.slug %}"
+                >
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
 {% endblock %}

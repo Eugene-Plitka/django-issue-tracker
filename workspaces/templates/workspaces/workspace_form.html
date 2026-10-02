@@ -9,22 +9,43 @@
 {% endblock %}
 
 {% block content %}
-    {% if workspace %}
-        <h1>Edit Workspace</h1>
-    {% else %}
-        <h1>Create Workspace</h1>
-    {% endif %}
 
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-
-        <button type="submit">
+    <div class="page-header">
+        <div>
             {% if workspace %}
-                Save
+                <h1>Edit Workspace</h1>
+
+                <p class="page-subtitle">
+                    Update workspace settings.
+                </p>
             {% else %}
-                Create
+                <h1>Create Workspace</h1>
+
+                <p class="page-subtitle">
+                    Create a new workspace for your projects.
+                </p>
             {% endif %}
-        </button>
-    </form>
+        </div>
+    </div>
+
+    <div class="form-card">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+
+            <div class="form-actions">
+                <button
+                    class="button button--primary"
+                    type="submit"
+                >
+                    {% if workspace %}
+                        Save changes
+                    {% else %}
+                        Create workspace
+                    {% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+
 {% endblock %}

@@ -1,40 +1,84 @@
 {% extends "base.html" %}
 
-{% block title %}{{ project.key }} - {{ project.name }}{% endblock %}
+{% block title %}
+    {{ project.key }} - {{ project.name }}
+{% endblock %}
 
 {% block content %}
-    <h1>{{ project.key }} - {{ project.name }}</h1>
+    <div class="page-header">
+        <div>
+            <h1>
+                {{ project.key }} — {{ project.name }}
+            </h1>
 
-    <p>{{ project.description }}</p>
+            <p class="page-subtitle">
+                Workspace: {{ workspace.name }}
+            </p>
+        </div>
 
-    <p>
-        Workspace: {{ workspace.name }}
-    </p>
-    {% if workspace_membership.role == "owner" or workspace_membership.role == "manager" %}
-        <p>
-            <a href="{% url 'projects:update' workspace.slug project.key %}">
+        {% if workspace_membership.role == "owner" or workspace_membership.role == "manager" %}
+            <a
+                class="button button--primary"
+                href="{% url 'projects:update' workspace.slug project.key %}"
+            >
                 Edit project
             </a>
-        </p>
-    {% endif %}
-    <p>
-        <a href="{% url 'issues:list' workspace.slug project.key %}">
-            Issues
-        </a>
-    </p>
-    <p>
-        <a href="{% url 'issues:label-list' workspace.slug project.key %}">
-            Labels
-        </a>
-    </p>
-    <p>
-        <a href="{% url 'projects:member-list' workspace.slug project.key %}">
-            Project members
-        </a>
-    </p>
+        {% endif %}
+    </div>
+
+    <section class="card">
+        <h2>Description</h2>
+
+        {% if project.description %}
+            <p class="issue-description">
+                {{ project.description|linebreaksbr }}
+            </p>
+        {% else %}
+            <p class="muted">
+                No description.
+            </p>
+        {% endif %}
+    </section>
+
+    <div class="card">
+        <h2>Project sections</h2>
+
+        <div class="action-grid">
+            <a
+                class="action-card"
+                href="{% url 'issues:list' workspace.slug project.key %}"
+            >
+                <strong>Issues</strong>
+                <span class="muted">
+                    View and manage project issues
+                </span>
+            </a>
+
+            <a
+                class="action-card"
+                href="{% url 'issues:label-list' workspace.slug project.key %}"
+            >
+                <strong>Labels</strong>
+                <span class="muted">
+                    View project labels
+                </span>
+            </a>
+
+            <a
+                class="action-card"
+                href="{% url 'projects:member-list' workspace.slug project.key %}"
+            >
+                <strong>Project members</strong>
+                <span class="muted">
+                    View project access
+                </span>
+            </a>
+        </div>
+    </div>
+
     <p>
         <a href="{% url 'projects:list' workspace.slug %}">
-            Back to projects
+            ← Back to projects
         </a>
     </p>
 {% endblock %}

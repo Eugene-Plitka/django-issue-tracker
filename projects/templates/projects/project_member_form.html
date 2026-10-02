@@ -3,18 +3,36 @@
 {% block title %}Add Project Member{% endblock %}
 
 {% block content %}
-    <h1>Add member to {{ project.key }}</h1>
+    <div class="page-header">
+        <div>
+            <h1>Add project member</h1>
 
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
+            <p class="page-subtitle">
+                Project {{ project.key }} — {{ project.name }}
+            </p>
+        </div>
+    </div>
 
-        <button type="submit">Add member</button>
-    </form>
+    <div class="form-card">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
 
-    <p>
-        <a href="{% url 'projects:member-list' workspace.slug project.key %}">
-            Back to project members
-        </a>
-    </p>
+            <div class="form-actions">
+                <button
+                    class="button button--primary"
+                    type="submit"
+                >
+                    Add member
+                </button>
+
+                <a
+                    class="button button--secondary"
+                    href="{% url 'projects:member-list' workspace.slug project.key %}"
+                >
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
 {% endblock %}

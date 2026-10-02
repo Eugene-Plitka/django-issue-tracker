@@ -3,31 +3,64 @@
 {% block title %}{{ workspace.name }} Projects{% endblock %}
 
 {% block content %}
-    <h1>{{ workspace.name }} Projects</h1>
+    <div class="page-header">
+        <div>
+            <h1>{{ workspace.name }} Projects</h1>
 
-    {% if workspace_membership.role == "owner" or workspace_membership.role == "manager" %}
-        <p>
-            <a href="{% url 'projects:create' workspace.slug %}">
+            <p class="page-subtitle">
+                Projects available in this workspace.
+            </p>
+        </div>
+
+        {% if workspace_membership.role == "owner" or workspace_membership.role == "manager" %}
+            <a
+                class="button button--primary"
+                href="{% url 'projects:create' workspace.slug %}"
+            >
                 Create project
             </a>
-        </p>
-    {% endif %}
+        {% endif %}
+    </div>
 
-    <ul>
-        {% for project in projects %}
-            <li>
-                <a href="{% url 'projects:detail' workspace.slug project.key %}">
-                    {{ project.key }} — {{ project.name }}
-                </a>
-            </li>
-        {% empty %}
-            <li>No projects available.</li>
-        {% endfor %}
-    </ul>
+    <div class="table-card">
+        <table class="projects-table">
+            <thead>
+                <tr>
+                    <th>Key</th>
+                    <th>Name</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for project in projects %}
+                    <tr>
+                        <td>
+                            <a
+                                class="issue-link"
+                                href="{% url 'projects:detail' workspace.slug project.key %}"
+                            >
+                                {{ project.key }}
+                            </a>
+                        </td>
+
+                        <td>
+                            {{ project.name }}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="2" class="empty-state">
+                            No projects available.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
     <p>
         <a href="{% url 'workspaces:detail' workspace.slug %}">
-            Back to workspace
+            ← Back to workspace
         </a>
     </p>
 {% endblock %}
