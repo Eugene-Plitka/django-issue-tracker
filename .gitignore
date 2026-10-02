@@ -8,6 +8,8 @@ venv/
 
 # Environment variables
 .env
+.env.prod
+.env.prod.local
 
 # VS Code
 .vscode/
@@ -23,3 +25,5 @@ htmlcov/
 
 # Django
 db.sqlite3
+
+staticfiles/
