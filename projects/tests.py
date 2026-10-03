@@ -598,3 +598,169 @@ class ProjectListTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 403)
+
+    def test_viewer_does_not_see_project_without_membership(self):
+        viewer = User.objects.create_user(
+            email="viewer@example.com",
+            password="TestPassword123!",
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=viewer,
+            role=WorkspaceMembership.Role.VIEWER,
+        )
+
+        self.client.login(
+            email="viewer@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.get(
+            reverse(
+                "projects:list",
+                kwargs={"workspace_slug": self.workspace.slug},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Backend API")
+
+    def test_viewer_sees_project_with_membership(self):
+        viewer = User.objects.create_user(
+            email="viewer@example.com",
+            password="TestPassword123!",
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=viewer,
+            role=WorkspaceMembership.Role.VIEWER,
+        )
+
+        ProjectMembership.objects.create(
+            project=self.project,
+            user=viewer,
+        )
+
+        self.client.login(
+            email="viewer@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.get(
+            reverse(
+                "projects:list",
+                kwargs={"workspace_slug": self.workspace.slug},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Backend API")
+
+    def test_viewer_with_membership_can_open_project_detail(self):
+        viewer = User.objects.create_user(
+            email="viewer@example.com",
+            password="TestPassword123!",
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=viewer,
+            role=WorkspaceMembership.Role.VIEWER,
+        )
+
+        ProjectMembership.objects.create(
+            project=self.project,
+            user=viewer,
+        )
+
+        self.client.login(
+            email="viewer@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.get(
+            reverse(
+                "projects:detail",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                },
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_viewer_cannot_update_project(self):
+        viewer = User.objects.create_user(
+            email="viewer@example.com",
+            password="TestPassword123!",
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=viewer,
+            role=WorkspaceMembership.Role.VIEWER,
+        )
+
+        ProjectMembership.objects.create(
+            project=self.project,
+            user=viewer,
+        )
+
+        self.client.login(
+            email="viewer@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.get(
+            reverse(
+                "projects:update",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                },
+            )
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_manager_can_add_project_member(self):
+        manager = User.objects.create_user(
+            email="manager@example.com",
+            password="TestPassword123!",
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=manager,
+            role=WorkspaceMembership.Role.MANAGER,
+        )
+
+        self.client.login(
+            email="manager@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "projects:member-add",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                },
+            ),
+            {
+                "user": self.developer.id,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        self.assertTrue(
+            ProjectMembership.objects.filter(
+                project=self.project,
+                user=self.developer,
+            ).exists()
+        )

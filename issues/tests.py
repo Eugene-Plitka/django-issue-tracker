@@ -548,6 +548,51 @@ class IssueUpdateTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
+    def test_manager_can_update_issue(self):
+        manager = User.objects.create_user(
+            email="manager@example.com",
+            password="TestPassword123!",
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=manager,
+            role=WorkspaceMembership.Role.MANAGER,
+        )
+
+        self.client.login(
+            email="manager@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "issues:update",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                    "issue_number": self.issue.number,
+                },
+            ),
+            {
+                "title": "Updated by manager",
+                "description": self.issue.description,
+                "status": self.issue.status,
+                "priority": self.issue.priority,
+                "assignee": "",
+                "labels": [],
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        self.issue.refresh_from_db()
+
+        self.assertEqual(
+            self.issue.title,
+            "Updated by manager",
+        )
+
 
 class IssueActivityTests(TestCase):
     def setUp(self):
@@ -808,7 +853,7 @@ class IssueCommentTests(TestCase):
             ).exists()
         )
 
-    def test_viewer_cannot_add_comment(self):
+    def test_viewer_can_add_comment(self):
         self.client.login(
             email="viewer@example.com",
             password="TestPassword123!",
@@ -828,12 +873,13 @@ class IssueCommentTests(TestCase):
             },
         )
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 302)
 
-        self.assertFalse(
+        self.assertTrue(
             Comment.objects.filter(
                 issue=self.issue,
                 author=self.viewer,
+                body="Viewer comment",
             ).exists()
         )
 
@@ -1352,6 +1398,10 @@ class IssueDeleteTests(TestCase):
             email="developer@example.com",
             password="TestPassword123!",
         )
+        self.viewer = User.objects.create_user(
+            email="viewer@example.com",
+            password="TestPassword123!",
+        )
 
         self.workspace = Workspace.objects.create(
             name="Test Workspace",
@@ -1373,6 +1423,11 @@ class IssueDeleteTests(TestCase):
             user=self.developer,
             role=WorkspaceMembership.Role.DEVELOPER,
         )
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=self.viewer,
+            role=WorkspaceMembership.Role.VIEWER,
+        )
 
         self.project = Project.objects.create(
             workspace=self.workspace,
@@ -1383,6 +1438,10 @@ class IssueDeleteTests(TestCase):
         ProjectMembership.objects.create(
             project=self.project,
             user=self.developer,
+        )
+        ProjectMembership.objects.create(
+            project=self.project,
+            user=self.viewer,
         )
 
         self.issue = Issue.objects.create(
@@ -1437,6 +1496,27 @@ class IssueDeleteTests(TestCase):
     def test_developer_cannot_delete_issue(self):
         self.client.login(
             email="developer@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "issues:delete",
+                kwargs={
+                    "workspace_slug": self.workspace.slug,
+                    "project_key": self.project.key,
+                    "issue_number": self.issue.number,
+                },
+            )
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+        self.assertTrue(Issue.objects.filter(pk=self.issue.pk).exists())
+
+    def test_viewer_cannot_delete_issue(self):
+        self.client.login(
+            email="viewer@example.com",
             password="TestPassword123!",
         )
 

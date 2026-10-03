@@ -238,9 +238,6 @@ def issue_detail(request, workspace_slug, project_key, issue_number):
     )
 
     if request.method == "POST":
-        if workspace_membership.role == WorkspaceMembership.Role.VIEWER:
-            raise PermissionDenied
-
         comment_form = CommentForm(request.POST)
 
         if comment_form.is_valid():

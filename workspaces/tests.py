@@ -530,3 +530,116 @@ class WorkspacePermissionTests(TestCase):
                 id=owner_membership.id,
             ).exists()
         )
+
+    def test_manager_cannot_update_workspace(self):
+        manager = User.objects.create_user(
+            email="manager@example.com",
+            password="TestPassword123!",
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=manager,
+            role=WorkspaceMembership.Role.MANAGER,
+        )
+
+        self.client.login(
+            email="manager@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.get(
+            reverse(
+                "workspaces:update",
+                kwargs={"slug": self.workspace.slug},
+            )
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_viewer_can_open_member_list(self):
+        self.client.login(
+            email="viewer@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.get(
+            reverse(
+                "workspaces:member-list",
+                kwargs={"slug": self.workspace.slug},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "owner@example.com")
+        self.assertContains(response, "viewer@example.com")
+
+    def test_developer_cannot_add_workspace_member(self):
+        developer = User.objects.create_user(
+            email="developer@example.com",
+            password="TestPassword123!",
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=developer,
+            role=WorkspaceMembership.Role.DEVELOPER,
+        )
+
+        self.client.login(
+            email="developer@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.get(
+            reverse(
+                "workspaces:member-add",
+                kwargs={"slug": self.workspace.slug},
+            )
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_manager_can_change_non_owner_role(self):
+        manager = User.objects.create_user(
+            email="manager@example.com",
+            password="TestPassword123!",
+        )
+
+        WorkspaceMembership.objects.create(
+            workspace=self.workspace,
+            user=manager,
+            role=WorkspaceMembership.Role.MANAGER,
+        )
+
+        viewer_membership = WorkspaceMembership.objects.get(
+            workspace=self.workspace,
+            user=self.viewer,
+        )
+
+        self.client.login(
+            email="manager@example.com",
+            password="TestPassword123!",
+        )
+
+        response = self.client.post(
+            reverse(
+                "workspaces:member-update",
+                kwargs={
+                    "slug": self.workspace.slug,
+                    "membership_id": viewer_membership.id,
+                },
+            ),
+            {
+                "role": WorkspaceMembership.Role.DEVELOPER,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        viewer_membership.refresh_from_db()
+
+        self.assertEqual(
+            viewer_membership.role,
+            WorkspaceMembership.Role.DEVELOPER,
+        )

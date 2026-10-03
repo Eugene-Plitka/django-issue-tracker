@@ -165,23 +165,21 @@
             {% endfor %}
         </div>
 
-        {% if workspace_membership.role != "viewer" %}
-            <div class="comment-form">
-                <h3>Add comment</h3>
+        <div class="comment-form">
+            <h3>Add comment</h3>
 
-                <form method="post">
-                    {% csrf_token %}
-                    {{ comment_form.as_p }}
+            <form method="post">
+                {% csrf_token %}
+                {{ comment_form.as_p }}
 
-                    <button
-                        class="button button--primary"
-                        type="submit"
-                    >
-                        Add comment
-                    </button>
-                </form>
-            </div>
-        {% endif %}
+                <button
+                    class="button button--primary"
+                    type="submit"
+                >
+                    Add comment
+                </button>
+            </form>
+        </div>
     </section>
 
 
