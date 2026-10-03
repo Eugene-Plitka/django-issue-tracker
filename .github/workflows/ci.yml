@@ -47,5 +47,8 @@ jobs:
       - name: Run Ruff
         run: ruff check .
 
+      - name: Collect static files
+        run: python manage.py collectstatic --noinput
+
       - name: Run tests
         run: python manage.py test
