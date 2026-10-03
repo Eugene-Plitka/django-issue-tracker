@@ -3,7 +3,34 @@
 {% block title %}Create Label{% endblock %}
 
 {% block content %}
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="{% url 'workspaces:list' %}">
+            Workspaces
+        </a>
 
+        <span class="breadcrumbs__separator">/</span>
+
+        <a href="{% url 'workspaces:detail' workspace.slug %}">
+            {{ workspace.name }}
+        </a>
+
+        <span class="breadcrumbs__separator">/</span>
+
+        <a href="{% url 'projects:detail' workspace.slug project.key %}">
+            {{ project.key }}
+        </a>
+
+        <span class="breadcrumbs__separator">/</span>
+
+        <a href="{% url 'issues:label-list' workspace.slug project.key %}">
+            Labels
+        </a>
+
+        <span class="breadcrumbs__separator">/</span>
+
+        <span>Create</span>
+    </nav>
+    
     <div class="page-header">
         <div>
             <h1>Create label</h1>

@@ -3,27 +3,64 @@
 {% block title %}{{ project.key }} Labels{% endblock %}
 
 {% block content %}
-    <h1>{{ project.key }} Labels</h1>
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="{% url 'workspaces:list' %}">
+            Workspaces
+        </a>
 
-    {% if workspace_membership.role == "owner" or workspace_membership.role == "manager" %}
-        <p>
-            <a href="{% url 'issues:label-create' workspace.slug project.key %}">
+        <span class="breadcrumbs__separator">/</span>
+
+        <a href="{% url 'workspaces:detail' workspace.slug %}">
+            {{ workspace.name }}
+        </a>
+
+        <span class="breadcrumbs__separator">/</span>
+
+        <a href="{% url 'projects:detail' workspace.slug project.key %}">
+            {{ project.key }}
+        </a>
+
+        <span class="breadcrumbs__separator">/</span>
+
+        <span>Labels</span>
+    </nav>
+
+    <div class="page-header">
+        <div>
+            <h1>{{ project.key }} Labels</h1>
+
+            <p class="page-subtitle">
+                Labels available for issues in {{ project.name }}.
+            </p>
+        </div>
+
+        {% if workspace_membership.role == "owner" or workspace_membership.role == "manager" %}
+            <a
+                class="button button--primary"
+                href="{% url 'issues:label-create' workspace.slug project.key %}"
+            >
                 Create label
             </a>
-        </p>
-    {% endif %}
+        {% endif %}
+    </div>
 
-    <ul>
-        {% for label in labels %}
-            <li>{{ label.name }}</li>
-        {% empty %}
-            <li>No labels yet.</li>
-        {% endfor %}
-    </ul>
+    <div class="card">
+        <div class="labels-list">
+            {% for label in labels %}
+                <span class="label-chip">
+                    {{ label.name }}
+                </span>
+            {% empty %}
+                <p class="muted">
+                    No labels yet.
+                </p>
+            {% endfor %}
+        </div>
+    </div>
 
     <p>
         <a href="{% url 'projects:detail' workspace.slug project.key %}">
-            Back to project
+            ← Back to project
         </a>
     </p>
 {% endblock %}

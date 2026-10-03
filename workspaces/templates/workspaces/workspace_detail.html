@@ -3,7 +3,15 @@
 {% block title %}{{ workspace.name }}{% endblock %}
 
 {% block content %}
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="{% url 'workspaces:list' %}">
+            Workspaces
+        </a>
 
+        <span class="breadcrumbs__separator">/</span>
+
+        <span>{{ workspace.name }}</span>
+    </nav>
     <div class="page-header">
         <div>
             <h1>{{ workspace.name }}</h1>

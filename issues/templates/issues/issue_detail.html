@@ -5,7 +5,33 @@
 {% endblock %}
 
 {% block content %}
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="{% url 'workspaces:list' %}">
+            Workspaces
+        </a>
 
+        <span class="breadcrumbs__separator">/</span>
+
+        <a href="{% url 'workspaces:detail' workspace.slug %}">
+            {{ workspace.name }}
+        </a>
+
+        <span class="breadcrumbs__separator">/</span>
+
+        <a href="{% url 'projects:detail' workspace.slug project.key %}">
+            {{ project.key }}
+        </a>
+
+        <span class="breadcrumbs__separator">/</span>
+
+        <a href="{% url 'issues:list' workspace.slug project.key %}">
+            Issues
+        </a>
+
+        <span class="breadcrumbs__separator">/</span>
+
+        <span>{{ project.key }}-{{ issue.number }}</span>
+    </nav>
     <div class="page-header">
         <div>
             <h1>

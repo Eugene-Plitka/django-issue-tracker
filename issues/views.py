@@ -448,6 +448,11 @@ def label_create(request, workspace_slug, project_key):
             label.project = project
             label.save()
 
+            messages.success(
+                request,
+                "Label created successfully.",
+            )
+
             return redirect(
                 "issues:label-list",
                 workspace_slug=workspace.slug,

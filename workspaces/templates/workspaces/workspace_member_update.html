@@ -3,6 +3,28 @@
 {% block title %}Edit Member Role{% endblock %}
 
 {% block content %}
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="{% url 'workspaces:list' %}">
+            Workspaces
+        </a>
+
+        <span class="breadcrumbs__separator">/</span>
+
+        <a href="{% url 'workspaces:detail' workspace.slug %}">
+            {{ workspace.name }}
+        </a>
+
+        <span class="breadcrumbs__separator">/</span>
+
+        <a href="{% url 'workspaces:member-list' workspace.slug %}">
+            Members
+        </a>
+
+        <span class="breadcrumbs__separator">/</span>
+
+        <span>Edit role</span>
+    </nav>
+    
     <div class="page-header">
         <div>
             <h1>Edit member role</h1>

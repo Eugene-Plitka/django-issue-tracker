@@ -3,6 +3,34 @@
 {% block title %}Remove Project Member{% endblock %}
 
 {% block content %}
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="{% url 'workspaces:list' %}">
+            Workspaces
+        </a>
+
+        <span class="breadcrumbs__separator">/</span>
+
+        <a href="{% url 'workspaces:detail' workspace.slug %}">
+            {{ workspace.name }}
+        </a>
+
+        <span class="breadcrumbs__separator">/</span>
+
+        <a href="{% url 'projects:detail' workspace.slug project.key %}">
+            {{ project.key }}
+        </a>
+
+        <span class="breadcrumbs__separator">/</span>
+
+        <a href="{% url 'projects:member-list' workspace.slug project.key %}">
+            Members
+        </a>
+
+        <span class="breadcrumbs__separator">/</span>
+
+        <span>Remove member</span>
+    </nav>
+    
     <div class="form-card danger-card">
         <h1>Remove project member?</h1>
 

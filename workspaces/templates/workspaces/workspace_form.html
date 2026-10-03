@@ -9,7 +9,28 @@
 {% endblock %}
 
 {% block content %}
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="{% url 'workspaces:list' %}">
+            Workspaces
+        </a>
 
+        {% if workspace %}
+            <span class="breadcrumbs__separator">/</span>
+
+            <a href="{% url 'workspaces:detail' workspace.slug %}">
+                {{ workspace.name }}
+            </a>
+
+            <span class="breadcrumbs__separator">/</span>
+
+            <span>Edit</span>
+        {% else %}
+            <span class="breadcrumbs__separator">/</span>
+
+            <span>Create</span>
+        {% endif %}
+    </nav>
+    
     <div class="page-header">
         <div>
             {% if workspace %}

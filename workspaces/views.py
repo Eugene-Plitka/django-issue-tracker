@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
@@ -67,6 +68,11 @@ def workspace_create(request):
                     role=WorkspaceMembership.Role.OWNER,
                 )
 
+            messages.success(
+                request,
+                "Workspace created successfully.",
+            )
+
             return redirect(
                 "workspaces:detail",
                 slug=workspace.slug,
@@ -99,6 +105,11 @@ def workspace_update(request, slug):
 
         if form.is_valid():
             workspace = form.save()
+
+            messages.success(
+                request,
+                "Workspace updated successfully.",
+            )
 
             return redirect(
                 "workspaces:detail",
@@ -195,6 +206,11 @@ def workspace_member_add(request, slug):
                             role=role,
                         )
 
+                        messages.success(
+                            request,
+                            "Workspace member added successfully.",
+                        )
+
                         return redirect(
                             "workspaces:member-list",
                             slug=workspace.slug,
@@ -264,6 +280,11 @@ def workspace_member_update(request, slug, membership_id):
                     membership.role = new_role
                     membership.save(update_fields=["role"])
 
+                    messages.success(
+                        request,
+                        "Member role updated successfully.",
+                    )
+
                     return redirect(
                         "workspaces:member-list",
                         slug=workspace.slug,
@@ -272,6 +293,11 @@ def workspace_member_update(request, slug, membership_id):
             else:
                 membership.role = new_role
                 membership.save(update_fields=["role"])
+
+                messages.success(
+                    request,
+                    "Member role updated successfully.",
+                )
 
                 return redirect(
                     "workspaces:member-list",
@@ -330,6 +356,11 @@ def workspace_member_delete(request, slug, membership_id):
 
     if request.method == "POST":
         membership.delete()
+
+        messages.success(
+            request,
+            "Workspace member removed successfully.",
+        )
 
         return redirect(
             "workspaces:member-list",

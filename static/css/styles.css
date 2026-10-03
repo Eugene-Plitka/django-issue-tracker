@@ -602,3 +602,20 @@ a:hover {
     border-color: #fde68a;
     color: #92400e;
 }
+
+.breadcrumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 18px;
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.breadcrumbs a {
+    color: #2563eb;
+}
+
+.breadcrumbs__separator {
+    color: #9ca3af;
+}

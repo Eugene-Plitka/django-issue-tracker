@@ -3,6 +3,33 @@
 {% block title %}Delete Issue{% endblock %}
 
 {% block content %}
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="{% url 'workspaces:list' %}">
+            Workspaces
+        </a>
+
+        <span class="breadcrumbs__separator">/</span>
+
+        <a href="{% url 'workspaces:detail' workspace.slug %}">
+            {{ workspace.name }}
+        </a>
+
+        <span class="breadcrumbs__separator">/</span>
+
+        <a href="{% url 'projects:detail' workspace.slug project.key %}">
+            {{ project.key }}
+        </a>
+
+        <span class="breadcrumbs__separator">/</span>
+
+        <a href="{% url 'issues:detail' workspace.slug project.key issue.number %}">
+            {{ project.key }}-{{ issue.number }}
+        </a>
+
+        <span class="breadcrumbs__separator">/</span>
+
+        <span>Delete</span>
+    </nav>
     <div class="form-card danger-card">
         <h1>
             Delete {{ project.key }}-{{ issue.number }}?

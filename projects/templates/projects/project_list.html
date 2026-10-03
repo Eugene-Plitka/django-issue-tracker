@@ -3,6 +3,21 @@
 {% block title %}{{ workspace.name }} Projects{% endblock %}
 
 {% block content %}
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="{% url 'workspaces:list' %}">
+            Workspaces
+        </a>
+
+        <span class="breadcrumbs__separator">/</span>
+
+        <a href="{% url 'workspaces:detail' workspace.slug %}">
+            {{ workspace.name }}
+        </a>
+
+        <span class="breadcrumbs__separator">/</span>
+
+        <span>Projects</span>
+    </nav>
     <div class="page-header">
         <div>
             <h1>{{ workspace.name }} Projects</h1>

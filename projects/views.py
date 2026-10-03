@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -65,6 +66,11 @@ def project_create(request, workspace_slug):
             project = form.save(commit=False)
             project.workspace = workspace
             project.save()
+
+            messages.success(
+                request,
+                "Project created successfully.",
+            )
 
             return redirect(
                 "projects:list",
@@ -177,6 +183,11 @@ def project_member_add(request, workspace_slug, project_key):
                 user=user,
             )
 
+            messages.success(
+                request,
+                "Project member added successfully.",
+            )
+
             return redirect(
                 "projects:member-list",
                 workspace_slug=workspace.slug,
@@ -231,6 +242,11 @@ def project_member_delete(
     if request.method == "POST":
         membership.delete()
 
+        messages.success(
+            request,
+            "Project member removed successfully.",
+        )
+
         return redirect(
             "projects:member-list",
             workspace_slug=workspace.slug,
@@ -274,6 +290,11 @@ def project_update(request, workspace_slug, project_key):
 
         if form.is_valid():
             project = form.save()
+
+            messages.success(
+                request,
+                "Project updated successfully.",
+            )
 
             return redirect(
                 "projects:detail",

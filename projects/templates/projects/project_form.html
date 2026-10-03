@@ -9,7 +9,38 @@
 {% endblock %}
 
 {% block content %}
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="{% url 'workspaces:list' %}">
+            Workspaces
+        </a>
 
+        <span class="breadcrumbs__separator">/</span>
+
+        <a href="{% url 'workspaces:detail' workspace.slug %}">
+            {{ workspace.name }}
+        </a>
+
+        <span class="breadcrumbs__separator">/</span>
+
+        {% if project %}
+            <a href="{% url 'projects:detail' workspace.slug project.key %}">
+                {{ project.key }}
+            </a>
+
+            <span class="breadcrumbs__separator">/</span>
+
+            <span>Edit</span>
+        {% else %}
+            <a href="{% url 'projects:list' workspace.slug %}">
+                Projects
+            </a>
+
+            <span class="breadcrumbs__separator">/</span>
+
+            <span>Create</span>
+        {% endif %}
+    </nav>
+    
     <div class="page-header">
         <div>
             {% if project %}
