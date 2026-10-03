@@ -24,6 +24,8 @@ jobs:
           --health-retries=5
 
     env:
+      SECRET_KEY: ci-test-secret-key-not-for-production-1234567890
+
       DB_NAME: issue_tracker_db
       DB_USER: issue_tracker_user
       DB_PASSWORD: test_password
