@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Complete Sign Up{% endblock %}
+
+{% block content %}
+    <div class="auth-wrapper">
+        <div class="form-card auth-card">
+            <h1>Complete sign up</h1>
+
+            <p class="page-subtitle">
+                Your social account was authenticated successfully.
+                Confirm the details below to finish creating your Issue Tracker account.
+            </p>
+
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+
+                {% if redirect_field_value %}
+                    <input
+                        type="hidden"
+                        name="{{ redirect_field_name }}"
+                        value="{{ redirect_field_value }}"
+                    >
+                {% endif %}
+
+                <div class="form-actions">
+                    <button
+                        class="button button--primary"
+                        type="submit"
+                    >
+                        Create account
+                    </button>
+
+                    <a
+                        class="button button--secondary"
+                        href="{% url 'account_login' %}"
+                    >
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
