@@ -28,7 +28,7 @@ urlpatterns = [
         ),
     ),
     path("admin/", admin.site.urls),
-    path("accounts/", include("django.contrib.auth.urls")),
+    path("accounts/", include("allauth.urls")),
     path("workspaces/", include("workspaces.urls")),
     path(
         "workspaces/<slug:workspace_slug>/projects/",

@@ -397,6 +397,11 @@ a:hover {
     background: white;
 }
 
+.form-card input[type="checkbox"] {
+    width: auto;
+    padding: 0;
+}
+
 .form-card textarea {
     min-height: 140px;
     resize: vertical;
@@ -618,4 +623,24 @@ a:hover {
 
 .breadcrumbs__separator {
     color: #9ca3af;
+}
+
+.social-login {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.social-login__label {
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.social-login__buttons {
+    display: grid;
+    gap: 10px;
+}
+
+.social-login__button {
+    text-align: center;
 }

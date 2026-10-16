@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if process == "connect" %}
+        Connect {{ provider.name }}
+    {% else %}
+        Sign In Via {{ provider.name }}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="auth-wrapper">
+        <div class="form-card auth-card">
+            {% if process == "connect" %}
+                <h1>Connect {{ provider.name }}</h1>
+
+                <p class="page-subtitle">
+                    You are about to connect your {{ provider.name }} account
+                    to Issue Tracker.
+                </p>
+            {% else %}
+                <h1>Sign in with {{ provider.name }}</h1>
+
+                <p class="page-subtitle">
+                    You are about to sign in to Issue Tracker using your
+                    {{ provider.name }} account.
+                </p>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                {% if redirect_field_value %}
+                    <input
+                        type="hidden"
+                        name="{{ redirect_field_name }}"
+                        value="{{ redirect_field_value }}"
+                    >
+                {% endif %}
+
+                <div class="form-actions">
+                    <button
+                        class="button button--primary"
+                        type="submit"
+                    >
+                        Continue with {{ provider.name }}
+                    </button>
+
+                    <a
+                        class="button button--secondary"
+                        href="{% url 'account_login' %}"
+                    >
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

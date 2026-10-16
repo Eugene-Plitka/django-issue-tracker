@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load socialaccount %}
+
+{% block title %}Sign Up{% endblock %}
+
+{% block content %}
+    <div class="auth-wrapper">
+        <div class="form-card auth-card">
+            <h1>Create account</h1>
+
+            <p class="page-subtitle">
+                Create an account to start using Issue Tracker.
+            </p>
+
+            <form
+                method="post"
+                action="{% url 'account_signup' %}"
+            >
+                {% csrf_token %}
+                {{ form.as_p }}
+
+                {% if redirect_field_value %}
+                    <input
+                        type="hidden"
+                        name="{{ redirect_field_name }}"
+                        value="{{ redirect_field_value }}"
+                    >
+                {% endif %}
+
+                <div class="form-actions">
+                    <button
+                        class="button button--primary"
+                        type="submit"
+                    >
+                        Create account
+                    </button>
+                </div>
+            </form>
+
+            <div class="social-login">
+                <p class="muted social-login__label">
+                    Or sign up with
+                </p>
+
+                <div class="social-login__buttons">
+                    <a
+                        class="button button--secondary social-login__button"
+                        href="{% provider_login_url 'google' %}"
+                    >
+                        Continue with Google
+                    </a>
+
+                    <a
+                        class="button button--secondary social-login__button"
+                        href="{% provider_login_url 'github' %}"
+                    >
+                        Continue with GitHub
+                    </a>
+                </div>
+            </div>
+            
+            <p>
+                Already have an account?
+                <a href="{% url 'account_login' %}">
+                    Sign in
+                </a>
+            </p>
+        </div>
+    </div>
+{% endblock %}
