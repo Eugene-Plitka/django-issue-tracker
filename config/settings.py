@@ -263,3 +263,5 @@ SOCIALACCOUNT_PROVIDERS = {
 ACCOUNT_ALLOW_REGISTRATION = (
     os.getenv("ACCOUNT_ALLOW_REGISTRATION", "True").lower() == "true"
 )
+
+ACCOUNT_ADAPTER = "accounts.adapters.AccountAdapter"
