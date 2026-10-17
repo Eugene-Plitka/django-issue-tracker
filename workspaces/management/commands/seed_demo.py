@@ -1,8 +1,8 @@
 import os
-
-from django.conf import settings
 from datetime import timedelta
 
+from django.conf import settings
+from django.contrib.sessions.models import Session
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
@@ -31,10 +31,22 @@ class Command(BaseCommand):
         if not settings.DEBUG and not os.environ.get("DEMO_USER_PASSWORD"):
             raise ValueError("DEMO_USER_PASSWORD is required in production.")
 
-        self.stdout.write("Removing existing demo workspaces...")
+        self.stdout.write("Resetting demo database...")
 
+        # Remove all workspaces, projects, issues and related data.
         Workspace.objects.all().delete()
 
+        # Remove registered visitors, including OAuth accounts.
+        # Preserve demo accounts and all superusers.
+        deleted_users, _ = (
+            User.objects.filter(is_superuser=False)
+            .exclude(email__in=DEMO_USERS.keys())
+            .delete()
+        )
+
+        self.stdout.write(f"Removed visitor records: {deleted_users}")
+
+        # Restore four demo accounts and their passwords.
         users = self._prepare_users()
 
         self.stdout.write("Creating demo workspaces...")
@@ -42,19 +54,20 @@ class Command(BaseCommand):
         commerce_workspace = self._create_commerce_workspace(users)
         platform_workspace = self._create_platform_workspace(users)
 
+        # Expire existing sessions for every account.
+        Session.objects.all().delete()
+
         self.stdout.write("")
-        self.stdout.write(
-            self.style.SUCCESS(
-                "Demo data created successfully.",
-            )
-        )
+        self.stdout.write(self.style.SUCCESS("Demo data created successfully."))
+
         self.stdout.write("")
         self.stdout.write("Demo users:")
-        self.stdout.write("  owner@example.com")
-        self.stdout.write("  manager@example.com")
-        self.stdout.write("  developer@example.com")
-        self.stdout.write("  viewer@example.com")
+
+        for email in DEMO_USERS:
+            self.stdout.write(f"  {email}")
+
         self.stdout.write(f"Password for all users: {DEMO_PASSWORD}")
+
         self.stdout.write("")
         self.stdout.write(
             f"Workspaces created: {commerce_workspace.name}, {platform_workspace.name}"
