@@ -1,3 +1,6 @@
+import os
+
+from django.conf import settings
 from datetime import timedelta
 
 from django.core.management.base import BaseCommand
@@ -10,7 +13,7 @@ from issues.services import create_comment_activity, create_issue
 from projects.models import Project, ProjectMembership
 from workspaces.models import Workspace, WorkspaceMembership
 
-DEMO_PASSWORD = "test12345"
+DEMO_PASSWORD = os.environ.get("DEMO_USER_PASSWORD", "test12345")
 
 DEMO_USERS = {
     "owner@example.com": WorkspaceMembership.Role.OWNER,
@@ -25,13 +28,12 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
-        self.stdout.write("Removing existing demo data...")
+        if not settings.DEBUG and not os.environ.get("DEMO_USER_PASSWORD"):
+            raise ValueError("DEMO_USER_PASSWORD is required in production.")
+
+        self.stdout.write("Removing existing demo workspaces...")
 
         Workspace.objects.all().delete()
-
-        User.objects.exclude(
-            email__in=DEMO_USERS.keys(),
-        ).delete()
 
         users = self._prepare_users()
 
@@ -68,10 +70,16 @@ class Command(BaseCommand):
 
             user.set_password(DEMO_PASSWORD)
             user.is_active = True
+            user.is_staff = False
+            user.is_superuser = False
+            user.user_permissions.clear()
+            user.groups.clear()
             user.save(
                 update_fields=[
                     "password",
                     "is_active",
+                    "is_staff",
+                    "is_superuser",
                 ]
             )
 
