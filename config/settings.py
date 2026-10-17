@@ -265,3 +265,21 @@ ACCOUNT_ALLOW_REGISTRATION = (
 )
 
 ACCOUNT_ADAPTER = "accounts.adapters.AccountAdapter"
+
+# Log unhandled Django request errors to Docker logs.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "loggers": {
+        "django.request": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+    },
+}
