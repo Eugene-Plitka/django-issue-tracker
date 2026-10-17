@@ -258,3 +258,8 @@ SOCIALACCOUNT_PROVIDERS = {
         },
     },
 }
+
+# Allow public registration locally, but disable it for the VPS demo.
+ACCOUNT_ALLOW_REGISTRATION = (
+    os.getenv("ACCOUNT_ALLOW_REGISTRATION", "True").lower() == "true"
+)
