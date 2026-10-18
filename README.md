@@ -4,6 +4,14 @@ A portfolio issue tracking application built with Django.
 
 The project demonstrates a practical multi-workspace issue tracking system with role-based permissions, project-level access, issue workflows, comments, activity history, filtering, search, Docker, PostgreSQL, automated tests, CI, and social authentication.
 
+## Live Demo
+
+The application is deployed and available online.
+
+**[🌐 Open Live Demo](https://issuetracker.eugene-dev-hub.space/)**
+
+> Demo accounts and login credentials are available on the [portfolio website](https://eugene-dev-hub.space/).
+
 ## Key Features
 
 - Email/password registration and login
