@@ -5,168 +5,91 @@
 
 {% block content %}
     <nav class="breadcrumbs" aria-label="Breadcrumb">
-        <a href="{% url 'workspaces:list' %}">
-            Workspaces
-        </a>
-
+        <a href="{% url 'workspaces:list' %}">Workspaces</a>
         <span class="breadcrumbs__separator">/</span>
-
-        <a href="{% url 'workspaces:detail' workspace.slug %}">
-            {{ workspace.name }}
-        </a>
-
+        <a href="{% url 'workspaces:detail' workspace.slug %}">{{ workspace.name }}</a>
         <span class="breadcrumbs__separator">/</span>
-
-        <a href="{% url 'projects:detail' workspace.slug project.key %}">
-            {{ project.key }}
-        </a>
-
+        <a href="{% url 'projects:detail' workspace.slug project.key %}">{{ project.key }}</a>
         <span class="breadcrumbs__separator">/</span>
-
         <span>Issues</span>
     </nav>
+
     <div class="page-header">
         <div>
             <h1>{{ project.key }} Issues</h1>
-            <p class="page-subtitle">
-                Track and manage issues for {{ project.name }}.
-            </p>
+            <p class="page-subtitle">Track and manage issues for {{ project.name }}.</p>
         </div>
-
         {% if workspace_membership.role != "viewer" %}
-            <a
-                class="button button--primary"
-                href="{% url 'issues:create' workspace.slug project.key %}"
-            >
+            <a class="button button--primary" href="{% url 'issues:create' workspace.slug project.key %}">
                 Create issue
             </a>
         {% endif %}
     </div>
 
-
     <div class="filters">
         <form method="get" class="filters__form" id="issue-filters-form">
-
-            <label for="sort">Sort:</label>
-            <select name="sort" id="sort" class="auto-submit">
-                <option
-                    value="created"
-                    {% if selected_sort == "created" %}selected{% endif %}
-                >
-                    Newest
-                </option>
-
-                <option
-                    value="updated"
-                    {% if selected_sort == "updated" %}selected{% endif %}
-                >
-                    Recently updated
-                </option>
-
-                <option
-                    value="priority"
-                    {% if selected_sort == "priority" %}selected{% endif %}
-                >
-                    Priority
-                </option>
-
-                <option
-                    value="status"
-                    {% if selected_sort == "status" %}selected{% endif %}
-                >
-                    Status
-                </option>
-            </select>
-
-
-            <label for="q">Search:</label>
-            <input
-                type="text"
-                name="q"
-                id="q"
-                value="{{ search_query|default:'' }}"
-                placeholder="Title or description"
-            >
-
-
-            <label for="status">Status:</label>
-            <select name="status" id="status" class="auto-submit">
-                <option value="">All</option>
-
-                {% for value, label in status_choices %}
-                    <option
-                        value="{{ value }}"
-                        {% if selected_status == value %}selected{% endif %}
-                    >
-                        {{ label }}
-                    </option>
-                {% endfor %}
-            </select>
-
-
-            <label for="priority">Priority:</label>
-            <select name="priority" id="priority" class="auto-submit">
-                <option value="">All</option>
-
-                {% for value, label in priority_choices %}
-                    <option
-                        value="{{ value }}"
-                        {% if selected_priority == value %}selected{% endif %}
-                    >
-                        {{ label }}
-                    </option>
-                {% endfor %}
-            </select>
-
-
-            <label for="assignee">Assignee:</label>
-            <select name="assignee" id="assignee" class="auto-submit">
-                <option value="">All</option>
-
-                {% for user in assignees %}
-                    <option
-                        value="{{ user.id }}"
-                        {% if selected_assignee == user.id|stringformat:"s" %}selected{% endif %}
-                    >
-                        {{ user.email }}
-                    </option>
-                {% endfor %}
-            </select>
-
-
-            <label for="label">Label:</label>
-            <select name="label" id="label" class="auto-submit">
-                <option value="">All</option>
-
-                {% for label in labels %}
-                    <option
-                        value="{{ label.id }}"
-                        {% if selected_label == label.id|stringformat:"s" %}selected{% endif %}
-                    >
-                        {{ label.name }}
-                    </option>
-                {% endfor %}
-            </select>
-
-
-            <div class="filters__actions">
-                <!-- <button class="button button--primary" type="submit">
-                    Filter
-                </button> -->
-
-                <a
-                    class="button button--secondary"
-                    href="{% url 'issues:list' workspace.slug project.key %}"
-                >
-                    Reset
-                </a>
+            <div class="issue-filter-field">
+                <label for="sort">Sort:</label>
+                <select name="sort" id="sort" class="auto-submit">
+                    <option value="created" {% if selected_sort == "created" %}selected{% endif %}>Newest</option>
+                    <option value="updated" {% if selected_sort == "updated" %}selected{% endif %}>Recently updated</option>
+                    <option value="priority" {% if selected_sort == "priority" %}selected{% endif %}>Priority</option>
+                    <option value="status" {% if selected_sort == "status" %}selected{% endif %}>Status</option>
+                </select>
             </div>
 
+            <div class="issue-filter-field issue-filter-field--search">
+                <label for="q">Search:</label>
+                <input type="text" name="q" id="q" value="{{ search_query|default:'' }}" placeholder="Title or description">
+            </div>
+
+            <div class="issue-filter-field">
+                <label for="status">Status:</label>
+                <select name="status" id="status" class="auto-submit">
+                    <option value="">All</option>
+                    {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="issue-filter-field">
+                <label for="priority">Priority:</label>
+                <select name="priority" id="priority" class="auto-submit">
+                    <option value="">All</option>
+                    {% for value, label in priority_choices %}
+                        <option value="{{ value }}" {% if selected_priority == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="issue-filter-field">
+                <label for="assignee">Assignee:</label>
+                <select name="assignee" id="assignee" class="auto-submit">
+                    <option value="">All</option>
+                    {% for user in assignees %}
+                        <option value="{{ user.id }}" {% if selected_assignee == user.id|stringformat:"s" %}selected{% endif %}>{{ user.email }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="issue-filter-field">
+                <label for="label">Label:</label>
+                <select name="label" id="label" class="auto-submit">
+                    <option value="">All</option>
+                    {% for label in labels %}
+                        <option value="{{ label.id }}" {% if selected_label == label.id|stringformat:"s" %}selected{% endif %}>{{ label.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filters__actions">
+                <a class="button button--secondary" href="{% url 'issues:list' workspace.slug project.key %}">Reset</a>
+            </div>
         </form>
     </div>
 
-
-    <div class="table-card">
+    <div class="table-card" role="region" aria-label="Issues list, scroll horizontally to see all columns" tabindex="0">
         <table class="issues-table">
             <thead>
                 <tr>
@@ -176,35 +99,21 @@
                     <th>Assignee</th>
                 </tr>
             </thead>
-
             <tbody>
                 {% for issue in issues %}
                     <tr>
                         <td>
-                            <a
-                                class="issue-link"
-                                href="{% url 'issues:detail' workspace.slug project.key issue.number %}"
-                            >
+                            <a class="issue-link" href="{% url 'issues:detail' workspace.slug project.key issue.number %}">
                                 {{ project.key }}-{{ issue.number }}
                             </a>
-
-                            <div class="issue-title">
-                                {{ issue.title }}
-                            </div>
+                            <div class="issue-title">{{ issue.title }}</div>
                         </td>
-
                         <td>
-                            <span class="badge badge--status-{{ issue.status }}">
-                                {{ issue.get_status_display }}
-                            </span>
+                            <span class="badge badge--status-{{ issue.status }}">{{ issue.get_status_display }}</span>
                         </td>
-
                         <td>
-                            <span class="badge badge--priority-{{ issue.priority }}">
-                                {{ issue.get_priority_display }}
-                            </span>
+                            <span class="badge badge--priority-{{ issue.priority }}">{{ issue.get_priority_display }}</span>
                         </td>
-
                         <td>
                             {% if issue.assignee %}
                                 {{ issue.assignee.email }}
@@ -213,24 +122,13 @@
                             {% endif %}
                         </td>
                     </tr>
-
                 {% empty %}
-                    <tr>
-                        <td colspan="4" class="empty-state">
-                            No issues found.
-                        </td>
-                    </tr>
+                    <tr><td colspan="4" class="empty-state">No issues found.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 
-
-    <p>
-        <a href="{% url 'projects:detail' workspace.slug project.key %}">
-            ← Back to project
-        </a>
-    </p>
-
+    <p><a href="{% url 'projects:detail' workspace.slug project.key %}">← Back to project</a></p>
     <script src="{% static 'js/issues.js' %}"></script>
 {% endblock %}

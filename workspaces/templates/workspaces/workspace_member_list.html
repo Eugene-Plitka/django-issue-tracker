@@ -4,41 +4,27 @@
 
 {% block content %}
     <nav class="breadcrumbs" aria-label="Breadcrumb">
-        <a href="{% url 'workspaces:list' %}">
-            Workspaces
-        </a>
-
+        <a href="{% url 'workspaces:list' %}">Workspaces</a>
         <span class="breadcrumbs__separator">/</span>
-
-        <a href="{% url 'workspaces:detail' workspace.slug %}">
-            {{ workspace.name }}
-        </a>
-
+        <a href="{% url 'workspaces:detail' workspace.slug %}">{{ workspace.name }}</a>
         <span class="breadcrumbs__separator">/</span>
-
         <span>Members</span>
     </nav>
-    
+
     <div class="page-header">
         <div>
             <h1>{{ workspace.name }} Members</h1>
-
-            <p class="page-subtitle">
-                Manage workspace members and roles.
-            </p>
+            <p class="page-subtitle">Manage workspace members and roles.</p>
         </div>
 
         {% if current_membership.role == "owner" or current_membership.role == "manager" %}
-            <a
-                class="button button--primary"
-                href="{% url 'workspaces:member-add' workspace.slug %}"
-            >
+            <a class="button button--primary" href="{% url 'workspaces:member-add' workspace.slug %}">
                 Add member
             </a>
         {% endif %}
     </div>
 
-    <div class="table-card">
+    <div class="table-card members-card">
         <table class="members-table">
             <thead>
                 <tr>
@@ -47,33 +33,18 @@
                     <th>Actions</th>
                 </tr>
             </thead>
-
             <tbody>
                 {% for membership in memberships %}
                     <tr>
-                        <td>{{ membership.user.email }}</td>
-
-                        <td>
-                            <span class="role-badge">
-                                {{ membership.get_role_display }}
-                            </span>
+                        <td data-label="Email">{{ membership.user.email }}</td>
+                        <td data-label="Role">
+                            <span class="role-badge">{{ membership.get_role_display }}</span>
                         </td>
-
-                        <td>
+                        <td data-label="Actions">
                             {% if current_membership.role == "owner" or current_membership.role == "manager" %}
                                 <div class="table-actions">
-                                    <a
-                                        href="{% url 'workspaces:member-update' workspace.slug membership.id %}"
-                                    >
-                                        Edit role
-                                    </a>
-
-                                    <a
-                                        class="danger-link"
-                                        href="{% url 'workspaces:member-delete' workspace.slug membership.id %}"
-                                    >
-                                        Remove
-                                    </a>
+                                    <a href="{% url 'workspaces:member-update' workspace.slug membership.id %}">Edit role</a>
+                                    <a class="danger-link" href="{% url 'workspaces:member-delete' workspace.slug membership.id %}">Remove</a>
                                 </div>
                             {% else %}
                                 <span class="muted">—</span>
@@ -82,9 +53,7 @@
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="3" class="empty-state">
-                            No members yet.
-                        </td>
+                        <td colspan="3" class="empty-state members-empty">No members yet.</td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -92,8 +61,6 @@
     </div>
 
     <p>
-        <a href="{% url 'workspaces:detail' workspace.slug %}">
-            ← Back to workspace
-        </a>
+        <a href="{% url 'workspaces:detail' workspace.slug %}">← Back to workspace</a>
     </p>
 {% endblock %}
